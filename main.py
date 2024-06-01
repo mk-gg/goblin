@@ -111,6 +111,7 @@ if __name__ == '__main__':
     
 
     try:
+        print("Hello world")
         asyncio.run(load_cogs(client))
         client.run(Config.token)
     
