@@ -108,10 +108,8 @@ async def on_ready() -> None:
     print(f'> Ping: {str(round(client.latency * 1000))} ms\n')
 
 if __name__ == '__main__':
-    
-
-    try:
-        print("Hello world")
+    #clear()
+    try:    
         asyncio.run(load_cogs(client))
         client.run(Config.token)
     
