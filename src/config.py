@@ -44,7 +44,7 @@ def load_config():
 
         tk_format, tk_str = cfg['token'].split(':')
 
-        
+        # For render.com
         tk_str = os.environ.get('token')
 
         if tk_format == 'base64' \

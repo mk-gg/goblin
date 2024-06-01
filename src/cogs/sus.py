@@ -4,29 +4,147 @@ from selfcord.ext import commands
 from src.utils import *
 
 guilds = {
-    438327036205858818: {
-        'ban_channel': 1110939231469195274,
-        'color': '#95BDFF'
-    }, # test 
-    1229357590295871529: {
-        'ban_channel': 1229357928226754570,
-        'color': '#8DDFCB'
-    }, # test 2
-    1229357703240089641: {
-        'ban_channel': 1229358040168267838, 
-        'color': '#EDB7ED'
-    }, # test 3
+    # 438327036205858818: {
+    #     'ban_channel': 1110939231469195274,
+    #     'color': '#95BDFF'
+    # }, # test 
+    # 1229357590295871529: {
+    #     'ban_channel': 1229357928226754570,
+    #     'color': '#8DDFCB'
+    # }, # test 2
+    # 1229357703240089641: {
+    #     'ban_channel': 1229358040168267838, 
+    #     'color': '#EDB7ED'
+    # }, # test 3
 
-    # 410537146672349205: {
-    #     'ban_channel': 976324309981204542,
-    #     'color': '#E8C872'
-    # }, # Axie Infinity 
-    # 930892666705694800: {
-    #     'ban_channel': 1044659893803692184,
-    #     'color': '#7FC7D9'
-    # } # Ronin Network
+    410537146672349205: {
+        'ban_channel': 976324309981204542,
+        'color': '#E8C872'
+    }, # Axie Infinity 
+    930892666705694800: {
+        'ban_channel': 1044659893803692184,
+        'color': '#7FC7D9'
+    } # Ronin Network
 }
 
+server_bots = {
+    396548639641567232, #Mavis Market Bot (new)
+    1110593454012104745, # Mavis Market Bot
+    823695836319055883,  # AxieBot 
+    1230221894221824222, #Axie.Bot [App]
+    1217477415757025444, # EndlessHerald [Axie Infinity]
+
+}
+
+flagged_names = [
+
+    'ᎠᎡΟР',
+    'ᎠᎡОР',
+    'ᎠᎡΟΡ',
+    'ᎠᎡΟᏢ',
+    'ᎠᎡОΡ',
+    
+
+    'ᎠᎡОᏢ',
+    'ᎠᎡΟᏢՏ',
+    'ᎠᎡΟΡՏ',
+    'ᎠᎡΟРՏ',
+    'ᎠᎡОΡЅ',
+    'zkЅуոс',
+    'CHECK BIO',
+    'GOTO BIO',
+    'LOOK BIO',
+    'SEE BIO',
+    'READ BIO',
+    '𝐁𝐈𝟎',
+    'ᏞӀᏙΕ', 
+    'ᏞӀᏙЕ',
+    'ᏞΙᏙЕ',
+    'ᏞΙᏙΕ',
+    'ᏞІᏙΕ',
+    'ᏞІᏙЕ',
+
+   
+
+    'ᏞӏᏙΕ',
+    'Βrіⅾցе',
+    'Вrіⅾցе',
+    
+
+
+    'ANNOUNCEMENT',
+    '📢ANOUNCEMENT',
+    '📢ANNOUNCEMENTS',
+    '📢ANNOUNCEMENT',
+    '📡 ANNOUNCEMENT',
+    '📢 Annoucement',
+    'HELPLINE✪',
+
+
+    's33.b1()',   
+
+    'announcements',
+    'tether_survey',
+    'tether_drop',
+    'tether_reward',
+    'tether_questionnaire',
+    'tether_study',
+    'tether_poll',
+    'tether_official',
+    'tether_prompt',
+    'tether_claim',
+
+    'tethersurvey',
+    'tetherdrop',
+    'tetherreward',
+    'tetherquestionnaire',
+    'tetherstudy',
+    'tetherpoll',
+    'tetherofficial',
+    'tetherprompt',
+    'tetherclaim',
+
+    'usdt_prompt',
+    'usdt_study',
+    'usdt_drop',
+    'usdt_claim',
+    'usdt_official',
+    'usdt_poll',
+    'usdt_survey',
+    'usdt_reward',
+    'usdt_questionnaire',
+
+    'usdt_prompt',
+    'usdtstudy',
+    'usdtdrop',
+    'usdtclaim',
+    'usdtprompt',
+    'usdtofficial',
+    'usdtpoll',
+    'usdtsurvey',
+    'usdtreward',
+    'usdtquestionnaire',
+
+    'injectiveclaim',
+    'huobiclaim',   
+    
+    'autobot',
+    'autoinfo',  
+    'alertbot',
+    'alertinfo', 
+    'alertmessage', 
+    'automessage', 
+    'claimbot', 
+    'claiminfo', 
+    'claimmessage',
+    'instantbot',
+    'instantinfo', 
+    'instantmessage',
+    'notifybot',
+    'notifyinfo',
+    'notifymessage'
+
+]
 
 def is_discord_url(url):
     parsed_url = urllib.parse.urlparse(str(url))  # Convert url to string
@@ -66,6 +184,69 @@ class Sus(commands.Cog):
         self.banned_users = {}
         self.user_locks = {}
         self.background_task = asyncio.create_task(self.process_queue())
+
+    async def is_blacklisted_name(self, data):
+        """
+        Checks data's attribute (name, display_name & global_name)
+        if it's similar to flagged_names
+
+        return boolean
+        """
+
+        names = [data.name, data.display_name, data.global_name]
+        names = [name for name in names if name is not None]
+        regex = "|".join(flagged_names)
+        is_blacklisted = bool(re.search(regex, "|".join(names)))
+        return is_blacklisted
+    async def mutual_guild(self, guild, member_id):
+        """
+        Check if a user is in the same server as the bot.
+
+        Args:
+            guild (discord.Guild): The guild object to check for the user.
+            member_id (int): The ID of the user to check.
+
+        Returns:
+            bool: True if the user is in the same server as the bot, False otherwise.
+
+        Raises:
+            discord.errors.NotFound: If the user is not found in the guild.
+        """
+        try:
+            resp = await guild.fetch_member(member_id)
+            return True
+        except selfcord.errors.NotFound:
+            return False
+        
+    async def ban_user(self, data, reason, deleted_message_second=0):
+        is_user_present = await self.mutual_guild(data['guild'], data['member'].id)
+        if is_user_present:
+            try:
+                guild = data['guild']
+                #user = guild.fetch_member(data['member'].id)
+            except selfcord.NotFound as e:
+                print(f"Ban User (Failed to fetch member): {e}")
+            
+            print(f"({guild}): Banning {data['member'].id} - {data['member']}")
+
+            channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
+            await channel.send(f"<@{data['member'].id}>")
+
+            if deleted_message_second > 0:
+                await asyncio.sleep(uniform(4, 8))
+
+ 
+            await guild.ban(data['member'], reason=reason, deleted_message_second=deleted_message_second)
+            await channel.send(
+                f'**Banned**\n'
+                f'UID: {data["member"].id}\n'
+                f'Reason: {reason}'
+            )
+
+    async def global_ban_user(self, user_id, guild_id):
+        if user_id not in self.banned_users:
+            self.banned_users[user_id] = set()
+        self.banned_users[user_id].add(guild_id)
 
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
@@ -132,6 +313,8 @@ class Sus(commands.Cog):
         # Check if the message was sent in a guild that we're listening to
         if message.guild.id not in guilds:
             return
+        
+        is_within_date = False
         # Check if the message author is within 45 day after joining the server
         try:
             is_within_date = check_date(message.author.joined_at.strftime("%Y-%m-%d %H:%M:%S%z"), 45)
@@ -163,8 +346,14 @@ class Sus(commands.Cog):
             time_format = f"[{get_time_now()}]"
             guild_format = f"[[{color}]{guild_obj}[/]]"
 
+           
 
+
+            
             async with self.user_locks.setdefault(user_id, asyncio.Lock()):
+
+                if user_id in server_bots:
+                    continue
 
                 if user_id in self.banned_users:
                     banned_servers = list(self.banned_users[user_id])
@@ -176,13 +365,12 @@ class Sus(commands.Cog):
                         # Since a user is detected from a banned server, attempt to ban
 
                         await self.global_ban_user(user_id, data_guild_id) # Add the user with guild id to the banned list
-                        
                         print(f"{time_format} {guild_format} Banning user: {data_guild_id}")
-                        await self.ban_user(data, "Flagged!")
+                        await self.ban_user(data, "Scam Bio Link")
 
                 else:
 
-                    print(f"{time_format} {guild_format} Data received from: {user_id}")
+                    # print(f"{time_format} {guild_format} Data received from: {user_id}")
 
                     event_handlers = {
                         'message': lambda: print(f"{time_format} {guild_format} {data['member'].name} sent a message  ({user_id})"),
@@ -190,23 +378,34 @@ class Sus(commands.Cog):
                         'join': lambda: print(f"{time_format} {guild_format} {data['member'].name} just joined  ({user_id})"),
                     }
 
-                    if data['event'] == 'message':
-                        # Process message data
-                        extract_url = extract_urls(data['message'].content)
-                        if not extract_url:
-                            print("No extracted url")
-                        else:
-                            final_url = get_final_url(extract_url[0])
+                    # if data['event'] == 'message':
+                    #     # Process message data
+                    #     extract_url = extract_urls(data['message'].content)
+                    #     if not extract_url:
+                    #         print("No extracted url")
+                    #     else:
+                    #         final_url = get_final_url(extract_url[0])
 
-                            if final_url:
-                                if is_discord_url(final_url):
-                                    guild_name = get_guild_name(final_url)
-                                    if guild_name:
-                                        print(f"Guild name: {guild_name}")
+                    #         if final_url:
+                    #             if is_discord_url(final_url):
+                    #                 guild_name = get_guild_name(final_url)
+                    #                 if guild_name:
+                    #                     print(f"Guild name: {guild_name}")
                                          
-                                    create_panel(final_url, "Discord Url", guild_obj.name,  data['message'])    
+                    #                 create_panel(final_url, "Discord Url", guild_obj.name,  data['message'])    
+                    event_handlers['join']()
+                    if data['event'] == 'update' or data['event'] == 'join':
+                        
 
-                    #elif data['event'] == 'update' or data['event'] == 'join':
+                        is_flagged = await self.is_blacklisted_name(data['member'])
+
+                        if is_flagged:
+                            print(f"{time_format} {guild_format} Flagged Name! - {data['user_id']}")
+                            await self.global_ban_user(user_id, data_guild_id)
+                            print(f"{time_format} {guild_format} Banning user {data['user_id']}")
+                            await self.ban_user(data, "Scam Bio Link")
+
+
 
                         
 
