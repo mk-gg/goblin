@@ -1,5 +1,5 @@
-import asyncio, glob, io, os, threading
-import aiohttp, selfcord
+import asyncio, glob, io, os, threading, re
+import aiohttp, selfcord, httpx, urllib.parse
 
 
 
@@ -290,6 +290,47 @@ def check_date(input_date, day):
     current_date = datetime.now(timezone.utc)
     time_difference = current_date - given_date 
     return time_difference < timedelta(days=day)
+
+def extract_urls(messages):
+    """
+    Extract URLs from a list of messages.
+    """
+    url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
+    matches = re.findall(url_pattern, messages)
+    urls = [match.rstrip("/ >") for match in matches]
+    return [url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//") for url in urls]
+
+
+def get_final_url(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    }
+
+    if not url.startswith('http'):
+        url = 'https://' + url
+
+    # Check if the URL is a Twitter short URL
+    if url.startswith('https://t.co/'):
+        try:
+            response = httpx.get(url, headers=headers, follow_redirects=False)
+            response.raise_for_status()  # Raise an exception if the status code is not 200
+            data = response.text
+            url = re.search("(?P<url>https?://[^\s]+)\"", data).group("url")
+            return str(url)
+        except httpx.HTTPError as err:
+            print(f'An HTTP error occurred: {err}')
+        except httpx.RequestError as err:
+            print(f'An error occurred: {err}')
+
+    try:
+        with httpx.Client(timeout=50.0) as client:
+            response = client.get(url, headers=headers, follow_redirects=True)
+            response.raise_for_status()  # Raise an exception if the status code is not 200
+            return str(response.url)
+    except httpx.HTTPError as err:
+        print(f'An HTTP error occurred: {err}')
+    except httpx.RequestError as err:
+        print(f'An error occurred: {err}')
 
 async def sendmsg(
     ctx, 

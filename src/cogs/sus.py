@@ -1,3 +1,5 @@
+import requests
+
 from selfcord.ext import commands
 from src.utils import *
 
@@ -26,6 +28,35 @@ guilds = {
 }
 
 
+def is_discord_url(url):
+    parsed_url = urllib.parse.urlparse(str(url))  # Convert url to string
+    domain = parsed_url.netloc
+    return domain.endswith(("discord.com", "discord.gg"))
+
+def get_guild_name(url):
+    # Extract the invite code from the URL using a regular expression
+    match = re.search(r'https?://discord(?:\.com/invite|\.gg)/([a-zA-Z0-9-]+)', url)
+    if match:
+        invite_code = match.group(1)
+        try:
+            response = requests.get(f"https://discord.com/api/v8/invites/{invite_code}") 
+            response.raise_for_status()  # Raise an exception for a failed request
+
+            data = response.json()
+
+
+            if "guild" in data:
+                guild_name = data["guild"]["name"]
+                return guild_name
+ 
+            
+            
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred: {http_err}")
+        except requests.exceptions.RequestException as err:
+            print(f"Error occurred: {err}")
+    else:
+        print("Invalid Discord invite link")
 
 class Sus(commands.Cog):
     def __init__(self, client):
@@ -159,7 +190,26 @@ class Sus(commands.Cog):
                         'join': lambda: print(f"{time_format} {guild_format} {data['member'].name} just joined  ({user_id})"),
                     }
 
-                    
+                    if data['event'] == 'message':
+                        # Process message data
+                        extract_url = extract_urls(data['message'].content)
+                        if not extract_url:
+                            print("No extracted url")
+                        else:
+                            final_url = get_final_url(extract_url[0])
+
+                            if final_url:
+                                if is_discord_url(final_url):
+                                    guild_name = get_guild_name(final_url)
+                                    if guild_name:
+                                        print(f"Guild name: {guild_name}")
+                                         
+                                    create_panel(final_url, "Discord Url", guild_obj.name,  data['message'])    
+
+                    #elif data['event'] == 'update' or data['event'] == 'join':
+
+                        
+
             self.main_queue.task_done()
 
 
