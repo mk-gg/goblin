@@ -40,7 +40,12 @@ def load_config():
         cfg = json.loads(fd.read())
 
     try:
+        
+
         tk_format, tk_str = cfg['token'].split(':')
+
+        
+        tk_str = os.environ.get('token')
 
         if tk_format == 'base64' \
         or tk_format == 'b64':

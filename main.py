@@ -8,6 +8,8 @@ from src.utils import *
 
 load_config()
 
+
+
 client = commands.Bot(
     command_prefix = Config.prefix,
     caseinsensitive = True,
