@@ -218,7 +218,7 @@ class Sus(commands.Cog):
         except selfcord.errors.NotFound:
             return False
         
-    async def ban_user(self, data, reason, deleted_message_second=0):
+    async def ban_user(self, data, reason, delete_message_seconds=0):
         is_user_present = await self.mutual_guild(data['guild'], data['member'].id)
         if is_user_present:
             try:
@@ -227,16 +227,16 @@ class Sus(commands.Cog):
             except selfcord.NotFound as e:
                 print(f"Ban User (Failed to fetch member): {e}")
             
-            print(f"({guild}): Banning {data['member'].id} - {data['member']}")
+            print(f"({guild}): [red]Banning[/] {data['member'].id} - {data['member']}")
 
             channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
             await channel.send(f"<@{data['member'].id}>")
 
-            if deleted_message_second > 0:
+            if delete_message_seconds > 0:
                 await asyncio.sleep(uniform(4, 8))
 
  
-            await guild.ban(data['member'], reason=reason, deleted_message_second=deleted_message_second)
+            await guild.ban(data['member'], reason=reason, delete_message_seconds=delete_message_seconds)
             await channel.send(
                 f'**Banned**\n'
                 f'UID: {data["member"].id}\n'
