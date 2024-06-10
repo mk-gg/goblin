@@ -146,6 +146,12 @@ flagged_names = [
 
 ]
 
+def is_scam_server(name):
+    if name is None:
+        return False
+    scam_keywords = {"support", "tickets","support-tickets", "support server", "ticket support", "helpdesk center", "create ticket", "helpdesk", "help desk", "help center", "support ticket", "ticket tool", "ticket", "server support", "customer support", "technical support", "help-center", "help", "help-centre"}
+    return any(keyword in name.lower() for keyword in scam_keywords)
+
 def is_discord_url(url):
     parsed_url = urllib.parse.urlparse(str(url))  # Convert url to string
     domain = parsed_url.netloc
@@ -384,21 +390,29 @@ class Sus(commands.Cog):
                         'join': lambda: print(f"{time_format} {guild_format} {data['member'].name} just joined  ({user_id})"),
                     }
 
-                    # if data['event'] == 'message':
-                    #     # Process message data
-                    #     extract_url = extract_urls(data['message'].content)
-                    #     if not extract_url:
-                    #         print("No extracted url")
-                    #     else:
-                    #         final_url = get_final_url(extract_url[0])
+                    if data['event'] == 'message':
+                        # Process message data
+                        extract_url = extract_urls(data['message'].content)
+                        if not extract_url:
+                            print("No extracted url")
+                        else:
+                            final_url = get_final_url(extract_url[0])
 
-                    #         if final_url:
-                    #             if is_discord_url(final_url):
-                    #                 guild_name = get_guild_name(final_url)
-                    #                 if guild_name:
-                    #                     print(f"Guild name: {guild_name}")
+                            if final_url:
+                                if is_discord_url(final_url):
+                                    guild_name = get_guild_name(final_url)
+                                    if guild_name:
+                                        print(f"Guild name: {guild_name}")
+
+                                        if is_scam_server(guild_name):
+                                            create_panel(final_url, "Scam Server", guild_obj.name,  data['message'])
+                                            
+                                            # print(f"{time_format} {guild_format} {guild_name} is a scam server!")
+                                            # await self.global_ban_user(user_id, data_guild_id)
+                                            # print(f"{time_format} {guild_format} Banning user {data['user_id']}")
+                                            # await self.ban_user(data, "Scam Bio Link")
                                          
-                    #                 create_panel(final_url, "Discord Url", guild_obj.name,  data['message'])    
+                                        
                     event_handlers['join']()
                     if data['event'] == 'update' or data['event'] == 'join':
                         
