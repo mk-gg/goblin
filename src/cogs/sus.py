@@ -411,15 +411,13 @@ class Sus(commands.Cog):
                                 if is_discord_url(final_url):
                                     guild_name = get_guild_name(final_url)
                                     if guild_name:
-                                        print(f"Guild name: {guild_name}")
-
+                                        
                                         if is_scam_server(guild_name):
                                             create_panel(final_url, "Scam Server", guild_obj.name,  data['message'])
                                             
-                                            # print(f"{time_format} {guild_format} {guild_name} is a scam server!")
-                                            # await self.global_ban_user(user_id, data_guild_id)
-                                            # print(f"{time_format} {guild_format} Banning user {data['user_id']}")
-                                            # await self.ban_user(data, "Scam Bio Link")
+                                            await self.global_ban_user(user_id, data_guild_id)
+                                            print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
+                                            await self.ban_user(data, "Scam Bio Link")
                                          
                                         
                     event_handlers['join']()
@@ -431,7 +429,7 @@ class Sus(commands.Cog):
                         if is_flagged:
                             print(f"{time_format} {guild_format} Flagged Name! - {data['user_id']}")
                             await self.global_ban_user(user_id, data_guild_id)
-                            print(f"{time_format} {guild_format} Banning user {data['user_id']}")
+                            print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
                             await self.ban_user(data, "Scam Bio Link")
 
 
