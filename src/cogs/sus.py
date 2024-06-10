@@ -288,6 +288,12 @@ class Sus(commands.Cog):
         # Check if the message was sent in a guild that we're listening to
         if member.guild.id not in guilds:
             return
+
+        # Check if member is already in guild via timestamp
+        if member.joined_at is not None and datetime.utcnow() - member.joined_at < timedelta(minutes=1):
+            # Member has already joined within the last minute, skip processing
+            return
+        
         # Create a dictionary of data to store about the newly joined member
         data = {
             'user_id': member.id,
