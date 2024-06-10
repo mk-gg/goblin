@@ -3,6 +3,8 @@ import requests
 from selfcord.ext import commands
 from src.utils import *
 
+from datetime import datetime, timedelta, timezone
+
 guilds = {
     438327036205858818: {
         'ban_channel': 1110939231469195274,
@@ -296,7 +298,7 @@ class Sus(commands.Cog):
             return
 
         # Check if member is already in guild via timestamp
-        if member.joined_at is not None and datetime.utcnow() - member.joined_at < timedelta(minutes=1):
+        if member.joined_at is not None and datetime.astimezone(member.joined_at) - member.joined_at < timedelta(minutes=1):
             # Member has already joined within the last minute, skip processing
             return
         
