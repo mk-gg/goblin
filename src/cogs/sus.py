@@ -392,6 +392,13 @@ class Sus(commands.Cog):
                         'join': lambda: print(f"{time_format} {guild_format} {data['member'].name} just joined  ({user_id})"),
                     }
 
+                    # if data['event'] in event_handlers:
+                    #    event_handlers[data['event']]()
+
+                    if data['event'] == 'join':
+                        event_handlers[data['event']]()
+
+                    
                     if data['event'] == 'message':
                         # Process message data
                         extract_url = extract_urls(data['message'].content)
