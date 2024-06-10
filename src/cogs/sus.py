@@ -4,18 +4,18 @@ from selfcord.ext import commands
 from src.utils import *
 
 guilds = {
-    # 438327036205858818: {
-    #     'ban_channel': 1110939231469195274,
-    #     'color': '#95BDFF'
-    # }, # test 
-    # 1229357590295871529: {
-    #     'ban_channel': 1229357928226754570,
-    #     'color': '#8DDFCB'
-    # }, # test 2
-    # 1229357703240089641: {
-    #     'ban_channel': 1229358040168267838, 
-    #     'color': '#EDB7ED'
-    # }, # test 3
+    438327036205858818: {
+        'ban_channel': 1110939231469195274,
+        'color': '#95BDFF'
+    }, # test 
+    1229357590295871529: {
+        'ban_channel': 1229357928226754570,
+        'color': '#8DDFCB'
+    }, # test 2
+    1229357703240089641: {
+        'ban_channel': 1229358040168267838, 
+        'color': '#EDB7ED'
+    }, # test 3
 
     410537146672349205: {
         'ban_channel': 976324309981204542,
