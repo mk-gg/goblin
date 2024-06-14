@@ -413,11 +413,11 @@ class Sus(commands.Cog):
                                     if guild_name:
                                         
                                         if is_scam_server(guild_name):
-                                            create_panel(final_url, "Scam Server", guild_obj.name,  data['message'])
+                                            create_panel(final_url, "Scam Server", guild_name,  data['message'])
                                             
                                             await self.global_ban_user(user_id, data_guild_id)
                                             print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
-                                            await self.ban_user(data, "Scam Bio Link")
+                                            await self.ban_user(data, "Scam Attempt")
                                          
                                         
                     event_handlers['join']()
