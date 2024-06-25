@@ -30,10 +30,10 @@ guilds = {
 }
 
 server_bots = {
-    396548639641567232, #Mavis Market Bot (new)
+    396548639641567232,  # Mavis Market Bot (new)
     1110593454012104745, # Mavis Market Bot
     823695836319055883,  # AxieBot 
-    1230221894221824222, #Axie.Bot [App]
+    1230221894221824222, # Axie.Bot [App]
     1217477415757025444, # EndlessHerald [Axie Infinity]
 
 }
@@ -53,11 +53,57 @@ flagged_names = [
     'ᎠᎡΟРՏ',
     'ᎠᎡОΡЅ',
     'zkЅуոс',
+    'ᏟᏞΑІΜΙΝᏀ',
+    'ᏟᏞΑӀМӏΝᏀ',
+    'СᏞΑӀМӏΝᏀ',
+    'СᏞΑӀΜІΝᏀ',
+    'ᏟᏞΑӏΜ',
+    'ᏟᏞΑӏΜΙΝᏀ',
     'CHECK BIO',
+    'ᏟНΕᏟΚ ΒІΟ',
     'GOTO BIO',
+    'ᏀΟТΟ ΒӀО',
+    'ᏀΟΤΟ ΒΙО',
+    'ᏀОТΟ ΒІО',
+    'ᏀΟΤΟ ΒӀО',
+    'ᏀОТΟ ВӏΟ',
+    'ᏀОΤΟ ΒӏΟ',
     'LOOK BIO',
+    'ᏞΟОᏦ ВΙΟ',
+    'ᏞΟОᏦ ВІΟ',
+    'ᏞΟΟΚ ΒӀО',
+    'ᏞΟΟᏦ ВІΟ',
+    'ᏞООᏦ ВӏΟ',
+    'ᏞОΟᏦ ВӏО',
+    'ᏞОΟᏦ ВΙΟ',
     'SEE BIO',
+    'ՏΕЕ ВӏΟ',
+    'ՏЕΕ ΒӏΟ',
+    'ՏΕΕ ΒӏΟ',
+    'ЅЕЕ ΒІО',
+    'ЅΕΕ ВІΟ',
+    'ЅΕЕ ВӀО',
+    'ЅЕΕ ВІО',
+    'ՏΕΕ ВӀО',
+    'ЅΕЕ ВІΟ',
+    'ՏЕЕ ΒӏО',
+    'ՏЕΕ ΒΙО',
+    'ЅЕΕ ВӀΟ',
+    'ЅΕΕ ΒӀО',
+    'ЅΕΕ ΒΙΟ',
+    'ՏЕЕ ВӏΟ',
     'READ BIO',
+    'ᎡΕΑᎠ ВΙΟ',
+    'ᎡЕΑᎠ ВӀО',
+    'ᎡΕΑᎠ ΒІΟ',
+    'ᎡΕΑᎠ ВӏО',
+    'ᎡΕΑᎠ ВΙО',
+    'ᎡΕΑᎠ ВӏО',
+    'ᎡΕΑᎠ ΒӀΟ',
+    'ᎡЕΑᎠ ΒӀО',
+    'ᏟΗΕᏟΚ ΒІО',
+    'СΗЕСΚ ВΙΟ',
+    'ᏟΗΕᏟΚ ВӀО',
     '𝐁𝐈𝟎',
     'ᏞӀᏙΕ', 
     'ᏞӀᏙЕ',
@@ -65,6 +111,24 @@ flagged_names = [
     'ᏞΙᏙΕ',
     'ᏞІᏙΕ',
     'ᏞІᏙЕ',
+    'ᎠΕᏞІᏙΕᎡ',
+    'ᎠΕᏞӏᏙЕᎡ',
+    'ᎠЕᏞІᏙЕᎡ',
+    'ᎠЕᏞӏᏙЕᎡ',
+    'ᎠΕᏞІᏙЕᎡ',
+    'ᎠЕᏞΙᏙΕᎡ',
+    'DELIVER',
+    'ᎠΕᏞӀᏙΕᎡ',
+    'ᎠЕᏞΙᏙЕᎡ',
+    'ᎠЕᏞІᏙЕᎡΥ',
+    'ᎠЕᏞΙᏙЕᎡΥ',
+    'ᎠΕᏞΙᏙΕᎡ',
+
+    'ᎠΕᏞΙᏙЕᎡ',
+    'AIRDROPPING',
+ 
+    
+
 
    
 
@@ -72,6 +136,8 @@ flagged_names = [
     'Βrіⅾցе',
     'Вrіⅾցе',
     
+    
+
 
 
     'ANNOUNCEMENT',
@@ -82,6 +148,7 @@ flagged_names = [
     '📢 Annoucement',
     'HELPLINE✪',
 
+ 
 
     's33.b1()',   
 
@@ -145,14 +212,19 @@ flagged_names = [
     'notifybot',
     'notifyinfo',
     'notifymessage'
-
 ]
 
 def is_scam_server(name):
     if name is None:
         return False
     scam_keywords = {"support", "tickets","support-tickets", "support server", "ticket support", "helpdesk center", "create ticket", "helpdesk", "help desk", "help center", "support ticket", "ticket tool", "ticket", "server support", "customer support", "technical support", "help-center", "help", "help-centre"}
-    return any(keyword in name.lower() for keyword in scam_keywords)
+    return any(keyword.lower() in name.lower() for keyword in scam_keywords)
+
+def is_nsfw_server(name):
+    if name is None:
+        return False
+    nsfw_keywords = {"NSFW", "Teen", "Onlyfan", "Onlyfans", "Leaks", "Nude", "Sex", "Tiktok", "SexCam", "Slut", "Porn", "18+", "hentai"}
+    return any(keyword.lower() in name.lower() for keyword in nsfw_keywords)
 
 def is_discord_url(url):
     parsed_url = urllib.parse.urlparse(str(url))  # Convert url to string
@@ -226,6 +298,63 @@ class Sus(commands.Cog):
         except selfcord.errors.NotFound:
             return False
         
+    async def timeout_user(self, data, reason):
+        if not await self.mutual_guild(data['guild'], data['member'].id):
+            print(f"Timeout User (Member not found in guild): {data['member'].id}")
+            return
+
+        guild = data['guild']
+        member = data['member']
+
+        try:
+            await member.timeout(timedelta(seconds=60), reason=reason)
+        except Exception as e:
+            print(f"Error timing out member: {e}")
+            return
+
+        color_guild = guilds[guild.id]['color']
+        event_msg = f"[#7e8329]Timeout[/]"
+        time_format = f"[{get_time_now()}]"
+        guild_format = f"[[{color_guild}]{guild}[/]]"
+
+        print(f"{time_format} {guild_format} {event_msg} {member.id} - {member}   {reason}")
+        
+
+    async def kick_user(self, data, reason):
+        is_user_present = await self.mutual_guild(data['guild'], data['member'].id)
+        if is_user_present:
+            try:
+                guild = data['guild']
+                #user = guild.fetch_member(data['member'].id)
+            except selfcord.NotFound as e:
+                print(f"Kick User (Failed to fetch member): {e}")
+
+            
+   
+            dguild_id = data['guild'].id
+            color_guild = guilds[dguild_id]['color']
+
+            event_msg = f"[#b98542]Kicking[/]"
+            time_format = f"[{get_time_now()}]"
+            guild_format = f"[[{color_guild}]{data['guild']}[/]]"
+
+
+            print(f"{time_format} {guild_format} {event_msg} {data['member'].id} - {data['member']}   {reason}")
+
+            channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
+            await channel.send(f"<@{data['member'].id}>")
+
+            
+
+ 
+            await guild.kick(data['member'], reason=reason)
+            await channel.send(
+                f'**Kicked**\n'
+                f'UID: {data["member"].id}\n'
+                f'Reason: {reason}'
+            )
+
+
     async def ban_user(self, data, reason, delete_message_seconds=0):
         is_user_present = await self.mutual_guild(data['guild'], data['member'].id)
         if is_user_present:
@@ -234,8 +363,18 @@ class Sus(commands.Cog):
                 #user = guild.fetch_member(data['member'].id)
             except selfcord.NotFound as e:
                 print(f"Ban User (Failed to fetch member): {e}")
+
             
-            print(f"({guild}): [red]Banning[/] {data['member'].id} - {data['member']}")
+   
+            dguild_id = data['guild'].id
+            color = guilds[dguild_id]['color']
+
+            event_msg = f"[#f595ad]Banning[/]"
+            time_format = f"[{get_time_now()}]"
+            guild_format = f"[[{color}]{data['guild']}[/]]"
+
+
+            print(f"{time_format} {guild_format} {event_msg} {data['member'].id} - {data['member']}   {reason}")
 
             channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
             await channel.send(f"<@{data['member'].id}>")
@@ -293,14 +432,16 @@ class Sus(commands.Cog):
         Returns:
             None
         """
+        
         # Check if the message was sent in a guild that we're listening to
         if member.guild.id not in guilds:
             return
 
-        # Check if member is already in guild via timestamp
-        if member.joined_at is not None and datetime.astimezone(member.joined_at) - member.joined_at < timedelta(minutes=1):
-            # Member has already joined within the last minute, skip processing
-            return
+        
+        # # Check if member is already in guild via timestamp
+        # if member.joined_at is not None and datetime.astimezone(member.joined_at) - member.joined_at < timedelta(minutes=1):
+        #     # Member has already joined within the last minute, skip processing
+        #     return
         
         # Create a dictionary of data to store about the newly joined member
         data = {
@@ -311,6 +452,8 @@ class Sus(commands.Cog):
             'event': 'join'
         }
         # Add the message data to the main queue
+
+        
         await self.main_queue.put(data)
 
     @commands.Cog.listener()
@@ -333,7 +476,7 @@ class Sus(commands.Cog):
         try:
             is_within_date = check_date(message.author.joined_at.strftime("%Y-%m-%d %H:%M:%S%z"), 45)
         except Exception as e:
-            print(f"On_message error: {e}")
+            pass
 
         if is_within_date:
             # Create a dictionary of data to store about the message
@@ -387,23 +530,24 @@ class Sus(commands.Cog):
                     # print(f"{time_format} {guild_format} Data received from: {user_id}")
 
                     event_handlers = {
-                        'message': lambda: print(f"{time_format} {guild_format} {data['member'].name} sent a message  ({user_id})"),
-                        'update': lambda: print(f"{time_format} {guild_format} {data['member'].name} updated its profile  ({user_id})"),
-                        'join': lambda: print(f"{time_format} {guild_format} {data['member'].name} just joined  ({user_id})"),
+                        'message': lambda: print(f"{time_format} {guild_format} [MESSAGE] {data['member'].name}: {data['message'].content}   ({user_id})"),
+                        'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name}  ({user_id})"),
+                        'join': lambda: print(f"{time_format} {guild_format} [JOIN] {data['member'].name} | {data['member'].display_name}  ({user_id})"),
                     }
 
-                    # if data['event'] in event_handlers:
-                    #    event_handlers[data['event']]()
-
-                    if data['event'] == 'join':
+                    if data['event'] in event_handlers:
                         event_handlers[data['event']]()
 
                     
+
+                    # Process message data
                     if data['event'] == 'message':
-                        # Process message data
+                        
                         extract_url = extract_urls(data['message'].content)
                         if not extract_url:
-                            print("No extracted url")
+                            #print(f"No extracted url: {guild_obj}- {data['message'].content}")
+                            pass
+                            
                         else:
                             final_url = get_final_url(extract_url[0])
 
@@ -418,12 +562,16 @@ class Sus(commands.Cog):
                                             await self.global_ban_user(user_id, data_guild_id)
                                             print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
                                             await self.ban_user(data, "Scam Attempt")
+                                        
+                                        if is_nsfw_server(guild_name):
+                                            create_panel(final_url, "NSFW Server", guild_name,  data['message'])
+                                            await self.timeout_user(data, "NSFW Spam / Hacked Account")
+                                            await self.kick_user(data, "NSFW Spam / Hacked Account")
                                          
                                         
-                    event_handlers['join']()
+                    
                     if data['event'] == 'update' or data['event'] == 'join':
                         
-
                         is_flagged = await self.is_blacklisted_name(data['member'])
 
                         if is_flagged:
