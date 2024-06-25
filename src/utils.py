@@ -258,16 +258,16 @@ def translate_confusable_characters(input_string):
     trans_table = str.maketrans({k: char for char, variations in alphabet_map.items() for k in variations})
     return input_string.translate(trans_table)
 
-def create_panel(url, category, guild_name, message):
+def create_panel(url, category, guild_name, message, member):
     panel_message = (
         f"Link detected: [b]{url}[/]\n"
         f"Category: [b]{category}[/]\n"
         f"Guild name: [b]{guild_name}[/]\n"
-        f"Message: [b]{message.content}[/]\n\n"
-        f"Sender: [b]{message.author.name}[/]\n"
-        f"UID: [b]{message.author.id}[/]" 
+        f"Message: [b]{message}[/]\n\n"
+        f"Sender: [b]{member.name}[/]\n"
+        f"UID: [b]{member.id}[/]" 
     )
-    panel = Panel.fit(panel_message, width=60, padding=(1, 2), title="Warning", subtitle=f"- {message.author.guild} -")
+    panel = Panel.fit(panel_message, width=60, padding=(1, 2), title="Warning", subtitle=f"- {member.guild} -")
     print(panel)
 
 def get_time_now():

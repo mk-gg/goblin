@@ -221,6 +221,7 @@ def is_scam_server(name):
     return any(keyword.lower() in name.lower() for keyword in scam_keywords)
 
 def is_nsfw_server(name):
+    print("NSFW CALL")
     if name is None:
         return False
     nsfw_keywords = {"NSFW", "Teen", "Onlyfan", "Onlyfans", "Leaks", "Nude", "Sex", "Tiktok", "SexCam", "Slut", "Porn", "18+", "hentai"}
@@ -456,6 +457,7 @@ class Sus(commands.Cog):
         
         await self.main_queue.put(data)
 
+
     @commands.Cog.listener()
     async def on_message(self, message):
         """
@@ -477,14 +479,21 @@ class Sus(commands.Cog):
             is_within_date = check_date(message.author.joined_at.strftime("%Y-%m-%d %H:%M:%S%z"), 45)
         except Exception as e:
             pass
-
+            
         if is_within_date:
+
+            if message.type == selfcord.MessageType.auto_moderation_action:
+                for embed in message.embeds:
+                    embed_dict = embed.to_dict()
+                    sent_message = embed_dict.get('description', '')
+            else:
+                sent_message = message.content
             # Create a dictionary of data to store about the message
             data = {
                     'user_id': message.author.id,
                     'guild': message.guild,
                     'member': message.author,
-                    'message': message,
+                    'message': sent_message,
                     'event': 'message'
                 }
             # Add the message data to the main queue
@@ -530,7 +539,7 @@ class Sus(commands.Cog):
                     # print(f"{time_format} {guild_format} Data received from: {user_id}")
 
                     event_handlers = {
-                        'message': lambda: print(f"{time_format} {guild_format} [MESSAGE] {data['member'].name}: {data['message'].content}   ({user_id})"),
+                        'message': lambda: print(f"{time_format} {guild_format} [MESSAGE] {data['member'].name}: {data['message']}   ({user_id})"),
                         'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name}  ({user_id})"),
                         'join': lambda: print(f"{time_format} {guild_format} [JOIN] {data['member'].name} | {data['member'].display_name}  ({user_id})"),
                     }
@@ -543,7 +552,7 @@ class Sus(commands.Cog):
                     # Process message data
                     if data['event'] == 'message':
                         
-                        extract_url = extract_urls(data['message'].content)
+                        extract_url = extract_urls(data['message'])
                         if not extract_url:
                             #print(f"No extracted url: {guild_obj}- {data['message'].content}")
                             pass
@@ -557,14 +566,14 @@ class Sus(commands.Cog):
                                     if guild_name:
                                         
                                         if is_scam_server(guild_name):
-                                            create_panel(final_url, "Scam Server", guild_name,  data['message'])
+                                            create_panel(final_url, "Scam Server", guild_name,  data['message', data['member']])
                                             
                                             await self.global_ban_user(user_id, data_guild_id)
                                             print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
                                             await self.ban_user(data, "Scam Attempt")
                                         
                                         if is_nsfw_server(guild_name):
-                                            create_panel(final_url, "NSFW Server", guild_name,  data['message'])
+                                            create_panel(final_url, "NSFW Server", guild_name,  data['message'], data['member'])
                                             await self.timeout_user(data, "NSFW Spam / Hacked Account")
                                             await self.kick_user(data, "NSFW Spam / Hacked Account")
                                          
