@@ -57,6 +57,7 @@ flagged_names = [
     'ᏟᏞΑӀМӏΝᏀ',
     'СᏞΑӀМӏΝᏀ',
     'СᏞΑӀΜІΝᏀ',
+    'ᏟᏞΑІМІΝᏀ',
     'ᏟᏞΑӏΜ',
     'ᏟᏞΑӏΜΙΝᏀ',
     'CHECK BIO',
@@ -68,6 +69,7 @@ flagged_names = [
     'ᏀΟΤΟ ΒӀО',
     'ᏀОТΟ ВӏΟ',
     'ᏀОΤΟ ΒӏΟ',
+    'ᏀОТΟ ВІΟ',
     'LOOK BIO',
     'ᏞΟОᏦ ВΙΟ',
     'ᏞΟОᏦ ВІΟ',
@@ -92,6 +94,7 @@ flagged_names = [
     'ЅΕΕ ΒӀО',
     'ЅΕΕ ΒΙΟ',
     'ՏЕЕ ВӏΟ',
+    'ЅΕΕ ΒІΟ',
     'READ BIO',
     'ᎡΕΑᎠ ВΙΟ',
     'ᎡЕΑᎠ ВӀО',
@@ -100,6 +103,7 @@ flagged_names = [
     'ᎡΕΑᎠ ВΙО',
     'ᎡΕΑᎠ ВӏО',
     'ᎡΕΑᎠ ΒӀΟ',
+    'ᎡΕΑᎠ ВӀΟ',
     'ᎡЕΑᎠ ΒӀО',
     'ᏟΗΕᏟΚ ΒІО',
     'СΗЕСΚ ВΙΟ',
@@ -126,6 +130,7 @@ flagged_names = [
 
     'ᎠΕᏞΙᏙЕᎡ',
     'AIRDROPPING',
+    'ΑӏᎡᎠᎡОᏢΡӀΝᏀ',
  
     
 
@@ -221,7 +226,6 @@ def is_scam_server(name):
     return any(keyword.lower() in name.lower() for keyword in scam_keywords)
 
 def is_nsfw_server(name):
-    print("NSFW CALL")
     if name is None:
         return False
     nsfw_keywords = {"NSFW", "Teen", "Onlyfan", "Onlyfans", "Leaks", "Nude", "Sex", "Tiktok", "SexCam", "Slut", "Porn", "18+", "hentai"}
@@ -257,6 +261,36 @@ def get_guild_name(url):
     else:
         print("Invalid Discord invite link")
 
+
+    
+
+def get_differences(before, after):
+    common_attributes = set(dir(before)) & set(dir(after))
+    differences = {}
+
+    for attr in common_attributes:
+        if hasattr(before, attr) and hasattr(after, attr):
+            if attr in ['note', 'avatar_decoration', '_avatar_decoration', 'avatar', 'display_avatar']:  # Add attributes to exclude here
+                continue
+            val1 = getattr(before, attr)
+            val2 = getattr(after, attr)
+            if not callable(val1) and not callable(val2):
+                try:
+                    if val1!= val2:
+                        key = f"{val1} -> {val2}"
+                        if key not in differences:
+                            differences[key] = []
+                        differences[key].append(attr)
+                except Exception as e:
+                    pass
+
+    if differences:
+        for key, attrs in differences.items():
+            try:
+                print(f"  {', '.join(attrs)}: {key}")
+            except Exception as e:
+                pass
+
 class Sus(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -265,6 +299,8 @@ class Sus(commands.Cog):
         self.banned_users = {}
         self.user_locks = {}
         self.background_task = asyncio.create_task(self.process_queue())
+    
+
 
     async def is_blacklisted_name(self, data):
         """
@@ -335,12 +371,12 @@ class Sus(commands.Cog):
             dguild_id = data['guild'].id
             color_guild = guilds[dguild_id]['color']
 
-            event_msg = f"[#b98542]Kicking[/]"
+            event_msg = f"[#b98542]KICK[/]"
             time_format = f"[{get_time_now()}]"
             guild_format = f"[[{color_guild}]{data['guild']}[/]]"
 
 
-            print(f"{time_format} {guild_format} {event_msg} {data['member'].id} - {data['member']}   {reason}")
+            print(f"{time_format} {guild_format} [{event_msg}] {data['member'].id} - {data['member']}   {reason}")
 
             channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
             await channel.send(f"<@{data['member'].id}>")
@@ -370,12 +406,12 @@ class Sus(commands.Cog):
             dguild_id = data['guild'].id
             color = guilds[dguild_id]['color']
 
-            event_msg = f"[#f595ad]Banning[/]"
+            event_msg = f"[#f595ad]BAN[/]"
             time_format = f"[{get_time_now()}]"
             guild_format = f"[[{color}]{data['guild']}[/]]"
 
 
-            print(f"{time_format} {guild_format} {event_msg} {data['member'].id} - {data['member']}   {reason}")
+            print(f"{time_format} {guild_format} [{event_msg}] {data['member'].id} - {data['member']}   {reason}")
 
             channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
             await channel.send(f"<@{data['member'].id}>")
@@ -412,6 +448,7 @@ class Sus(commands.Cog):
         for guild in my_guilds:
             member = guild.get_member(before.id)
             if member is not None:
+                #get_differences(before, after)
                 # If the user is a member, add their update to the main queue
                 data = {
                     'user_id': after.id,
@@ -438,12 +475,6 @@ class Sus(commands.Cog):
         if member.guild.id not in guilds:
             return
 
-        
-        # # Check if member is already in guild via timestamp
-        # if member.joined_at is not None and datetime.astimezone(member.joined_at) - member.joined_at < timedelta(minutes=1):
-        #     # Member has already joined within the last minute, skip processing
-        #     return
-        
         # Create a dictionary of data to store about the newly joined member
         data = {
             'user_id': member.id,
@@ -540,7 +571,7 @@ class Sus(commands.Cog):
 
                     event_handlers = {
                         'message': lambda: print(f"{time_format} {guild_format} [MESSAGE] {data['member'].name}: {data['message']}   ({user_id})"),
-                        'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name}  ({user_id})"),
+                        'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name} | {data['member'].display_name} ({user_id})"),
                         'join': lambda: print(f"{time_format} {guild_format} [JOIN] {data['member'].name} | {data['member'].display_name}  ({user_id})"),
                     }
 
@@ -569,8 +600,8 @@ class Sus(commands.Cog):
                                             create_panel(final_url, "Scam Server", guild_name,  data['message'], data['member'])
                                             
                                             await self.global_ban_user(user_id, data_guild_id)
-                                            print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
-                                            await self.ban_user(data, "Scam Attempt")
+                                            print(f"{time_format} {guild_format} [#f595ad]Banning user[/] {data['user_id']}")
+                                            await self.ban_user(data, "Scam Attempt", 3000)
                                         
                                         if is_nsfw_server(guild_name):
                                             create_panel(final_url, "NSFW Server", guild_name,  data['message'], data['member'])
@@ -584,9 +615,8 @@ class Sus(commands.Cog):
                         is_flagged = await self.is_blacklisted_name(data['member'])
 
                         if is_flagged:
-                            print(f"{time_format} {guild_format} Flagged Name! - {data['user_id']}")
+                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}")
                             await self.global_ban_user(user_id, data_guild_id)
-                            print(f"{time_format} {guild_format} [red]Banning user[/] {data['user_id']}")
                             await self.ban_user(data, "Scam Bio Link")
 
 
