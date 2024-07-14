@@ -250,7 +250,7 @@ def translate_confusable_characters(input_string):
     "I": ['ɪ', 'Ɩ', 'ǀ', 'Ι', 'Ι', 'І', 'Ӏ', '׀', 'ו', 'ן', 'ا', 'ߊ', 'ᛁ', 'ℐ', 'ℑ', 'I', '𝐈'],
 
     "j": ['ϳ', 'ј', 'ⅉ', '𝐣', '𝑗', '𝒋', '𝒿', '𝓳', '𝔧', '𝕛', '𝖏', '𝗃', '𝗷', '𝘫', '𝙟', '𝚓', 'ｊ'],
-    'J': ['Ϳ', ],
+    'J': ['Ϳ', 'Ϳ', 'Ј', 'Ꭻ', 'ᒍ', 'ꓙ', 'Ʝ', '𝐉', '𝐽', '𝑱', '𝒥', '𝓙', '𝔍', '𝕁', '𝕵', '𝖩', '𝗝', '𝘑', '𝙅', '𝙹', 'Ｊ'],
 
 
     }
@@ -301,10 +301,73 @@ def extract_urls(messages):
     return [url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//") for url in urls]
 
 
+def fix_https_url(url):
+    def normalize_scheme(url):
+        scheme_match = re.match(r'^(https?:?/?/?)(.+)', url, re.IGNORECASE)
+        if scheme_match:
+            scheme, rest = scheme_match.groups()
+            return 'http://' + rest if scheme.lower().startswith('http:') else 'https://' + rest
+        return 'https://' + url
+
+    def clean_netloc(parsed_url):
+        if not parsed_url.netloc:
+            parts = parsed_url.path.split('/', 1)
+            netloc = parts[0]
+            path = '/' + parts[1] if len(parts) > 1 else '/'
+            return parsed_url._replace(netloc=netloc, path=path)
+        return parsed_url
+
+    def remove_default_ports(parsed_url):
+        if (parsed_url.port == 80 and parsed_url.scheme == 'http') or \
+           (parsed_url.port == 443 and parsed_url.scheme == 'https'):
+            return parsed_url._replace(netloc=parsed_url.hostname)
+        return parsed_url
+
+    def normalize_path(parsed_url):
+        path = parsed_url.path or '/'
+        path = re.sub(r'/+', '/', path)
+        return parsed_url._replace(path=path)
+
+    def remove_fragment_if_needed(parsed_url):
+        if parsed_url.path.lower().endswith(('.html', '.htm', '.php')):
+            return parsed_url._replace(fragment='')
+        return parsed_url
+
+    def is_valid_domain(netloc):
+        return '.' in netloc and '_' not in netloc
+
+    # Main logic
+    url = url.strip().rstrip(',;')
+    
+    try:
+        url = url.encode('idna').decode('ascii')
+    except UnicodeError:
+        pass
+
+    url = normalize_scheme(url)
+    parsed_url = urllib.parse.urlparse(url)
+    
+    parsed_url = clean_netloc(parsed_url)
+    parsed_url = remove_default_ports(parsed_url)
+    parsed_url = normalize_path(parsed_url)
+    parsed_url = remove_fragment_if_needed(parsed_url)
+
+    if not is_valid_domain(parsed_url.netloc):
+        return None
+
+    fixed_url = urllib.parse.urlunparse(parsed_url)
+
+    if not re.match(r'^https?://[^\s/$.?#].[^\s]*$', fixed_url):
+        return None
+
+    return fixed_url
+
 def get_final_url(url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     }
+
+    url = fix_https_url(url)
 
     if not url.startswith('http'):
         url = 'https://' + url
