@@ -315,6 +315,12 @@ def create_template_matcher(templates):
     return matcher
 
 def is_matched_template(data):
+    """
+    Returns a tuple containing:
+        - is_matched (bool): Whether the data matches the template.
+        - matched_template (str): The matched template.
+        - value (str): The extracted value.
+    """
     # Check data's attributes (name, display_name & global_name)
     names = [data.name, data.display_name, data.global_name]
     names = [name for name in names if name is not None]
@@ -718,15 +724,17 @@ class Sus(commands.Cog):
                     if data['event'] == 'update' or data['event'] == 'join':
                         
                         is_flagged = await self.is_blacklisted_name(data['member'])
+                        is_matched, matched_template, value = is_matched_template(data['member'])
 
-                        is_matched = is_matched_template(data['member'])
+                        
 
                         if is_flagged:
                             print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}")
                             await self.global_ban_user(user_id, data_guild_id)
                             await self.ban_user(data, "Scam Bio Link")
                         elif is_matched:
-                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}")
+                            print(f"Passed is_matched")
+                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}  Template: {matched_template}")
                             await self.global_ban_user(user_id, data_guild_id)
                             await self.ban_user(data, "Scam Bio Link")
 
