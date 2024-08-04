@@ -222,6 +222,116 @@ flagged_names = [
     'notifymessage'
 ]
 
+templates = [
+    '$_____ CLAIM',
+    '$_____ CLAIM | LOOK BIO',
+    '$_____ CLAIM | SEE BIO',
+    '$_____ CLAIM | CHECK BIO',
+    '$_____ CLAIM | READ BIO',
+    '$_____ CLAIM | GOTO BIO',
+
+    '$_____ CLAIMING',
+    '$_____ CLAIMING | LOOK BIO',
+    '$_____ CLAIMING | SEE BIO',
+    '$_____ CLAIMING | CHECK BIO',
+    '$_____ CLAIMING | READ BIO',
+    '$_____ CLAIMING | GOTO BIO',
+
+    '$_____ DELIVER',
+    '$_____ DELIVER | SEE BIO',
+    '$_____ DELIVER | CHECK BIO',
+    '$_____ DELIVER | LOOK BIO',
+    '$_____ DELIVER | READ BIO',
+    '$_____ DELIVER | GOTO BIO',
+
+    '$_____ DELIVERY',
+    '$_____ DELIVERY | SEE BIO',
+    '$_____ DELIVERY | CHECK BIO',
+    '$_____ DELIVERY | LOOK BIO',
+    '$_____ DELIVERY | READ BIO',
+    '$_____ DELIVERY | GOTO BIO',
+
+    '$_____ DROP | SEE BIO',
+    '$_____ DROP | READ BIO',
+    '$_____ DROP | GOTO BIO',
+    '$_____ DROP | LOOK BIO',
+    '$_____ DROP | CHECK BIO',
+
+    '$_____ AIRDROP | SEE BIO',
+    '$_____ AIRDROP | READ BIO',
+    '$_____ AIRDROP | GOTO BIO',
+    '$_____ AIRDROP | LOOK BIO',
+    '$_____ AIRDROP | CHECK BIO',
+
+    '$_____ AIR DROP',
+    '$_____ AIR DROP | SEE BIO',
+    '$_____ AIR DROP | READ BIO',
+    '$_____ AIR DROP | GOTO BIO',
+    '$_____ AIR DROP | LOOK BIO',
+    '$_____ AIR DROP | CHECK BIO',
+
+    '$_____ AIRDROPPING',
+    '$_____ AIRDROPPING | CHECK BIO',
+    '$_____ AIRDROPPING | SEE BIO',
+    '$_____ AIRDROPPING | LOOK BIO',
+    '$_____ AIRDROPPING | READ BIO',
+    '$_____ AIRDROPPING | GOTO BIO',
+
+    '$_____ PUSH | READ BIO',
+    '$_____ PUSH | SEE BIO',
+    '$_____ PUSH | CHECK BIO',
+    '$_____ PUSH | LOOK BIO',
+    '$_____ PUSH | GOTO BIO',
+
+    '_____ MINT | READ BIO',
+    '_____ MINT | SEE BIO',
+    '_____ MINT | CHECK BIO',
+    '_____ MINT | LOOK BIO',
+    '_____ MINT | GOTO BIO',
+
+    '$_____ Reward Program',
+    '$_____ Reward Program | SEE BIO',
+    '$_____ Reward Program | READ BIO',
+    '$_____ Reward Program | GOTO BIO',
+    '$_____ Reward Program | LOOK BIO',
+    '$_____ Reward Program | CHECK BIO',
+
+    '$_____ AIR*DROP LIVE',
+    '$_____ AIR.DROP LIVE',
+
+]
+
+def create_template_matcher(templates):
+    # Convert templates to regex patterns
+    patterns = [re.escape(t).replace('_____', r'(.+)') for t in templates]
+    
+    def matcher(input_string):
+        for i, pattern in enumerate(patterns):
+            match = re.fullmatch(pattern, input_string)
+            if match:
+                return templates[i], match.group(1)
+        return None, None
+
+    return matcher
+
+def is_matched_template(data):
+    # Check data's attributes (name, display_name & global_name)
+    names = [data.name, data.display_name, data.global_name]
+    names = [name for name in names if name is not None]
+
+    match_template = create_template_matcher(templates)
+
+    for name in names:
+        translate_input = translate_confusable_characters(name)
+        matched_template, value = match_template(translate_input)
+        if matched_template:
+            print(f"[[green]MATCHED[/]] Input '{name}' matches template '{matched_template}' with value '{value}'")
+            return True, matched_template, value
+
+    #print(f"[[red]INVALID[/]] None of the inputs {names} match any template")
+    return False, None, None
+
+
 def is_scam_server(name):
     if name is None:
         return False
@@ -609,10 +719,17 @@ class Sus(commands.Cog):
                         
                         is_flagged = await self.is_blacklisted_name(data['member'])
 
+                        is_matched = is_matched_template(data['member'])
+
                         if is_flagged:
                             print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}")
                             await self.global_ban_user(user_id, data_guild_id)
                             await self.ban_user(data, "Scam Bio Link")
+                        elif is_matched:
+                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}")
+                            await self.global_ban_user(user_id, data_guild_id)
+                            await self.ban_user(data, "Scam Bio Link")
+
 
 
 
