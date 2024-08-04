@@ -585,31 +585,23 @@ class Sus(commands.Cog):
 
                     # Process message data
                     if data['event'] == 'message':
-                        
-                        extract_url = extract_urls(data['message'])
-                        if not extract_url:
-                            #print(f"No extracted url: {guild_obj}- {data['message'].content}")
-                            pass
-                            
-                        else:
-                            final_url = get_final_url(extract_url[0])
-
-                            if final_url:
-                                if is_discord_url(final_url):
-                                    guild_name = get_guild_name(final_url)
-                                    if guild_name:
+                        detected_url = scan_message_url(data['message'])
+                        if detected_url:
+                            if is_discord_url(detected_url):
+                                guild_name = get_guild_name(detected_url)
+                                if guild_name:
+                                    
+                                    if is_scam_server(guild_name):
+                                        create_panel(detected_url, "Scam Server", guild_name,  data['message'], data['member'])
                                         
-                                        if is_scam_server(guild_name):
-                                            create_panel(final_url, "Scam Server", guild_name,  data['message'], data['member'])
-                                            
-                                            await self.global_ban_user(user_id, data_guild_id)
-                                            print(f"{time_format} {guild_format} [#f595ad]Banning user[/] {data['user_id']}")
-                                            await self.ban_user(data, "Scam Attempt", 3000)
-                                        
-                                        if is_nsfw_server(guild_name):
-                                            create_panel(final_url, "NSFW Server", guild_name,  data['message'], data['member'])
-                                            await self.timeout_user(data, "NSFW Spam / Hacked Account")
-                                            await self.kick_user(data, "NSFW Spam / Hacked Account")
+                                        await self.global_ban_user(user_id, data_guild_id)
+                                        print(f"{time_format} {guild_format} [#f595ad]Banning user[/] {data['user_id']}")
+                                        await self.ban_user(data, "Scam Attempt", 3000)
+                                    
+                                    if is_nsfw_server(guild_name):
+                                        create_panel(detected_url, "NSFW Server", guild_name,  data['message'], data['member'])
+                                        await self.timeout_user(data, "NSFW Spam / Hacked Account")
+                                        await self.kick_user(data, "NSFW Spam / Hacked Account")
                                          
                                         
                     
