@@ -369,6 +369,45 @@ def extract_urls(messages):
     """
     Extract URLs from a single message.
     """
+    # Original pattern
+    url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
+    
+    # New pattern for the specific case
+    specific_pattern = r"<https:\s*/(?:%\d+%)?@@t\.co/[^>]+>"
+    
+    # Combine patterns
+    combined_pattern = f"{url_pattern}|{specific_pattern}"
+    
+    matches = re.findall(combined_pattern, messages)
+    
+    urls = []
+    for match in matches:
+        if match.startswith('<https:'):
+            # Handle the specific case
+            url = match.strip('<>')
+            url = url.replace(' ', '').replace('@@', '@')
+            url = re.sub(r'%\d+%', '', url)
+            url = 'https://' + url.split('/', 1)[-1]
+        else:
+            # Handle other cases as before
+            url = match.rstrip("/ >")
+        
+        url = url.strip('**').replace('>', '')
+        # Apply the original replacements
+        url = url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "")
+        # Remove trailing slash for t.co links
+        if 't.co' in url:
+            url = url.rstrip('/')
+        
+        urls.append(url)
+    
+    return urls
+
+def old_extract_urls(messages):
+    """
+    Deprecated 
+    Extract URLs from a single message.
+    """
     url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
     matches = re.findall(url_pattern, messages)
     urls = [match.rstrip("/ >") for match in matches]
