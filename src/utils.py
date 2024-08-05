@@ -367,12 +367,12 @@ def scan_message_url(message):
 
 def extract_urls(messages):
     """
-    Extract URLs from a list of messages.
+    Extract URLs from a single message.
     """
     url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
     matches = re.findall(url_pattern, messages)
     urls = [match.rstrip("/ >") for match in matches]
-    return [url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//") for url in urls]
+    return [url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "") for url in urls]
 
 
 def fix_https_url(url):
