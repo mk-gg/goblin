@@ -283,11 +283,24 @@ templates = [
     '$_____ PUSH | LOOK BIO',
     '$_____ PUSH | GOTO BIO',
 
+    '$_____ MOVE | READ BIO',
+    '$_____ MOVE | SEE BIO',
+    '$_____ MOVE | CHECK BIO',
+    '$_____ MOVE | LOOK BIO',
+    '$_____ MOVE | GOTO BIO',
+
     '_____ MINT | READ BIO',
     '_____ MINT | SEE BIO',
     '_____ MINT | CHECK BIO',
     '_____ MINT | LOOK BIO',
     '_____ MINT | GOTO BIO',
+
+    '$_____ TRANSFER',
+    '$_____ TRANSFER | READ BIO',
+    '$_____ TRANSFER | SEE BIO',
+    '$_____ TRANSFER | CHECK BIO',
+    '$_____ TRANSFER | LOOK BIO',
+    '$_____ TRANSFER | GOTO BIO',
 
     '$_____ Reward Program',
     '$_____ Reward Program | SEE BIO',
@@ -298,6 +311,18 @@ templates = [
 
     '$_____ AIR*DROP LIVE',
     '$_____ AIR.DROP LIVE',
+
+    '_____ Era Bridge | READ BIO',
+    '_____ Era Bridge | CHECK BIO',
+    '_____ Era Bridge | GOTO BIO',
+    '_____ Era Bridge | LOOK BIO',
+    '_____ Era Bridge | SEE BIO',
+
+    '_____ Era Bridge _____ | READ BIO',
+    '_____ Era Bridge _____ | CHECK BIO',
+    '_____ Era Bridge _____ | GOTO BIO',
+    '_____ Era Bridge _____ | LOOK BIO',
+    '_____ Era Bridge _____ | SEE BIO'
 
 ]
 
@@ -733,8 +758,7 @@ class Sus(commands.Cog):
                             await self.global_ban_user(user_id, data_guild_id)
                             await self.ban_user(data, "Scam Bio Link")
                         elif is_matched:
-                            print(f"Passed is_matched")
-                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']}  Template: {matched_template}")
+                            print(f"{time_format} {guild_format} [#f595ad]Flagged Name![/] - {data['user_id']} Template: {matched_template}")
                             await self.global_ban_user(user_id, data_guild_id)
                             await self.ban_user(data, "Scam Bio Link")
 
