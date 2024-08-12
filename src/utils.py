@@ -394,7 +394,7 @@ def extract_urls(messages):
         
         url = url.strip('**').replace('>', '')
         # Apply the original replacements
-        url = url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "")
+        url = url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "").replace("%0%", "")
         # Remove trailing slash for t.co links
         if 't.co' in url:
             url = url.rstrip('/')
