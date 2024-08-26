@@ -40,114 +40,6 @@ server_bots = {
 
 flagged_names = [
 
-    'ᎠᎡΟР',
-    'ᎠᎡОР',
-    'ᎠᎡΟΡ',
-    'ᎠᎡΟᏢ',
-    'ᎠᎡОΡ',
-    
-
-    'ᎠᎡОᏢ',
-    'ᎠᎡΟᏢՏ',
-    'ᎠᎡΟΡՏ',
-    'ᎠᎡΟРՏ',
-    'ᎠᎡОΡЅ',
-    'zkЅуոс',
-    'ᏟᏞΑІΜΙΝᏀ',
-    'ᏟᏞΑӀМӏΝᏀ',
-    'СᏞΑӀМӏΝᏀ',
-    'СᏞΑӀΜІΝᏀ',
-    'ᏟᏞΑІМІΝᏀ',
-    'ᏟᏞΑІМӀΝᏀ',
-    'ᏟᏞΑӏΜ',
-    'ᏟᏞΑӏΜΙΝᏀ',
-    'CHECK BIO',
-    'ᏟНΕᏟΚ ΒІΟ',
-    'GOTO BIO',
-    'ᏀΟТΟ ΒӀО',
-    'ᏀΟΤΟ ΒΙО',
-    'ᏀОТΟ ΒІО',
-    'ᏀΟΤΟ ΒӀО',
-    'ᏀОТΟ ВӏΟ',
-    'ᏀОΤΟ ΒӏΟ',
-    'ᏀОТΟ ВІΟ',
-    'LOOK BIO',
-    'ᏞΟОᏦ ВΙΟ',
-    'ᏞΟОᏦ ВІΟ',
-    'ᏞΟΟΚ ΒӀО',
-    'ᏞΟΟᏦ ВІΟ',
-    'ᏞООᏦ ВӏΟ',
-    'ᏞОΟᏦ ВӏО',
-    'ᏞОΟᏦ ВΙΟ',
-    'SEE BIO',
-    'ՏΕЕ ВӏΟ',
-    'ՏЕΕ ΒӏΟ',
-    'ՏΕΕ ΒӏΟ',
-    'ЅЕЕ ΒІО',
-    'ЅΕΕ ВІΟ',
-    'ЅΕЕ ВӀО',
-    'ЅЕΕ ВІО',
-    'ՏΕΕ ВӀО',
-    'ЅΕЕ ВІΟ',
-    'ՏЕЕ ΒӏО',
-    'ՏЕΕ ΒΙО',
-    'ЅЕΕ ВӀΟ',
-    'ЅΕΕ ΒӀО',
-    'ЅΕΕ ΒΙΟ',
-    'ՏЕЕ ВӏΟ',
-    'ЅΕΕ ΒІΟ',
-    'ЅЕΕ ВӏО',
-    'READ BIO',
-    'ᎡΕΑᎠ ВΙΟ',
-    'ᎡЕΑᎠ ВӀО',
-    'ᎡΕΑᎠ ΒІΟ',
-    'ᎡΕΑᎠ ВӏО',
-    'ᎡΕΑᎠ ВΙО',
-    'ᎡΕΑᎠ ВӏО',
-    'ᎡΕΑᎠ ΒӀΟ',
-    'ᎡΕΑᎠ ВӀΟ',
-    'ᎡЕΑᎠ ΒӀО',
-    'ᏟΗΕᏟΚ ΒІО',
-    'СΗЕСΚ ВΙΟ',
-    'ᏟΗΕᏟΚ ВӀО',
-    'Ꭱеԝаrⅾ Ρrоցrаⅿ',
-    '𝐁𝐈𝟎',
-    'ᏞӀᏙΕ', 
-    'ᏞӀᏙЕ',
-    'ᏞΙᏙЕ',
-    'ᏞΙᏙΕ',
-    'ᏞІᏙΕ',
-    'ᏞІᏙЕ',
-    'ᎠΕᏞІᏙΕᎡ',
-    'ᎠΕᏞӏᏙЕᎡ',
-    'ᎠЕᏞІᏙЕᎡ',
-    'ᎠЕᏞӏᏙЕᎡ',
-    'ᎠΕᏞІᏙЕᎡ',
-    'ᎠЕᏞΙᏙΕᎡ',
-    'DELIVER',
-    'ᎠΕᏞӀᏙΕᎡ',
-    'ᎠЕᏞΙᏙЕᎡ',
-    'ᎠЕᏞІᏙЕᎡΥ',
-    'ᎠЕᏞΙᏙЕᎡΥ',
-    'ᎠΕᏞΙᏙΕᎡ',
-
-    'ᎠΕᏞΙᏙЕᎡ',
-    'AIRDROPPING',
-    'ΑӏᎡᎠᎡОᏢΡӀΝᏀ',
- 
-    
-
-
-   
-
-    'ᏞӏᏙΕ',
-    'Βrіⅾցе',
-    'Вrіⅾցе',
-    
-    
-
-
-
     'ANNOUNCEMENT',
     '📢ANOUNCEMENT',
     '📢ANNOUNCEMENTS',
@@ -326,6 +218,8 @@ templates = [
 
 ]
 
+TIMEOUT_DURATION = 60
+
 def create_template_matcher(templates):
     # Convert templates to regex patterns
     patterns = [re.escape(t).replace('_____', r'(.+)') for t in templates]
@@ -488,7 +382,7 @@ class Sus(commands.Cog):
         member = data['member']
 
         try:
-            await member.timeout(timedelta(seconds=60), reason=reason)
+            await member.timeout(timedelta(seconds=TIMEOUT_DURATION), reason=reason)
         except Exception as e:
             print(f"Error timing out member: {e}")
             return
@@ -715,7 +609,7 @@ class Sus(commands.Cog):
 
                     event_handlers = {
                         'message': lambda: print(f"{time_format} {guild_format} [MESSAGE] {data['member'].name}: {data['message']}   ({user_id})"),
-                        'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name} | {data['member'].display_name} ({user_id})"),
+                        # 'update': lambda: print(f"{time_format} {guild_format} [UPDATE] {data['member'].name} | {data['member'].display_name} ({user_id})"),
                         'join': lambda: print(f"{time_format} {guild_format} [JOIN] {data['member'].name} | {data['member'].display_name}  ({user_id})"),
                     }
 
@@ -726,7 +620,8 @@ class Sus(commands.Cog):
 
                     # Process message data
                     if data['event'] == 'message':
-                        detected_url = scan_message_url(data['message'])
+                        # detected_url = scan_message_url(data['message'])
+                        detected_url = find_message_url(data['message'])
                         if detected_url:
                             if is_discord_url(detected_url):
                                 guild_name = get_guild_name(detected_url)

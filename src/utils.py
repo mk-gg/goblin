@@ -508,6 +508,101 @@ def get_final_url(url):
     except httpx.RequestError as err:
         print(f'An error occurred: {err}')
 
+
+def find_message_url(message):
+    extracted_url = reworked_extract_urls(message)
+    if extracted_url:
+        for url in extracted_url:
+            sanitized_url = clean_url(url)
+            fetched_final_url = get_final_url(sanitized_url)
+            return fetched_final_url
+
+def safe_backslash_replacement(url):
+    # Parse the URL
+    parsed = urllib.parse.urlparse(url)
+    
+    # Replace backslashes with forward slashes only in the path, params, and query
+    new_path = parsed.path.replace('\\', '/')
+    new_params = parsed.params.replace('\\', '/')
+    new_query = parsed.query.replace('\\', '/')
+    
+    # Reconstruct the URL
+    cleaned_url = urllib.parse.urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        new_path,
+        new_params,
+        new_query,
+        parsed.fragment
+    ))
+    
+    return cleaned_url
+
+def clean_url(url):
+    # Decode URL-encoded characters
+    
+    url = urllib.parse.unquote(url)
+    # Remove unnecessary characters
+    url = url.replace(" ", "").strip()
+    
+    url = safe_backslash_replacement(url)
+
+    # Ensure the URL has a scheme
+    if not url.startswith(('http://', 'https://', 'ftp://')):
+        url = 'https://' + url.lstrip('/:')
+
+    # Remove extra leading slashes after the scheme # NEW
+    url = re.sub(r'(https?://)/+', r'\1', url)
+
+    # Canonicalize the URL
+    parsed_url = urllib.parse.urlparse(url)
+    url = f"{parsed_url.scheme}://{parsed_url.netloc.split('@')[-1]}{parsed_url.path}"
+
+    
+    # Remove username and password
+    if "@" in url:
+        url = url.split("@", 1)[1]
+    # Remove fragment
+    if "#" in url:
+        url = url.split("#", 1)[0]
+    # Remove query parameters
+    if "?" in url:
+        url = url.split("?", 1)[0]
+
+    
+    # Remove trailing non-URL characters
+    url = re.sub(r'(https?://[^\s/$.?#].[^\s)>]*).*', r'\1', url)
+
+    # Remove trailing punctuation (preserved from the original function)
+    url = re.sub(r'[^\w/]+$', '', url)
+
+    # Handle empty URLs
+    if url == 'https://' or url == 'http://':
+        return ''
+    
+    return url
+
+def reworked_extract_urls(message):
+    # Remove Discord mentions
+    message = re.sub(r'<@!?\d+>', '', message)
+    # Regular expression to match URLs, including those in markdown-style links
+    url_pattern = r'\bhttps?://\S+|\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+|\[?<?(?:https?://)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)\)?>?\]?|(?<=\()https?://[^\s)]+(?=\))'
+    
+    # Find all matches in the message
+    urls = re.findall(url_pattern, message, re.IGNORECASE)
+    
+    # Clean and return the found URLs
+    cleaned_urls = []
+    for url in urls:
+        # Remove surrounding brackets, parentheses, and angle brackets
+        url = re.sub(r'^[\[(<]|[\])>]$', '', url)
+        
+        
+        cleaned_url = clean_url(url)
+        if cleaned_url and cleaned_url not in cleaned_urls:
+            cleaned_urls.append(cleaned_url)
+    return cleaned_urls
+
 async def sendmsg(
     ctx, 
     message: str = '',
