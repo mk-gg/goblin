@@ -2,6 +2,7 @@ import requests
 
 from selfcord.ext import commands
 from src.utils import *
+from src.svg_panel import *
 
 from datetime import datetime, timedelta, timezone
 
@@ -256,7 +257,6 @@ def is_matched_template(data):
     #print(f"[[red]INVALID[/]] None of the inputs {names} match any template")
     return False, None, None
 
-
 def is_scam_server(name):
     if name is None:
         return False
@@ -299,9 +299,6 @@ def get_guild_name(url):
     else:
         print("Invalid Discord invite link")
 
-
-    
-
 def get_differences(before, after):
     common_attributes = set(dir(before)) & set(dir(after))
     differences = {}
@@ -338,8 +335,6 @@ class Sus(commands.Cog):
         self.user_locks = {}
         self.background_task = asyncio.create_task(self.process_queue())
     
-
-
     async def is_blacklisted_name(self, data):
         """
         Checks data's attribute (name, display_name & global_name)
@@ -353,6 +348,7 @@ class Sus(commands.Cog):
         regex = "|".join(flagged_names)
         is_blacklisted = bool(re.search(regex, "|".join(names)))
         return is_blacklisted
+    
     async def mutual_guild(self, guild, member_id):
         """
         Check if a user is in the same server as the bot.
@@ -372,6 +368,75 @@ class Sus(commands.Cog):
             return True
         except selfcord.errors.NotFound:
             return False
+
+    async def send_panel(self, data, message, designated_guild):
+        if not await self.mutual_guild(data['guild'], data['member'].id):
+            print(f"Sending Panel (Member not found in guild): {data['member'].id}")
+            return
+        
+        LOGGING_GUILD_ID = 438327036205858818
+        CHANNEL_MAPPINGS = {
+            "Ronin Network": 1301454090554834974,
+            "default": 1301454060787863593  # This is for Axie Infinity and any other guild
+        }
+        member = data['member']
+        guild = self.client.get_guild(LOGGING_GUILD_ID)
+        
+
+        custom_theme = {
+            'background': '#121212',
+            'text_primary': '#D3C2C3',
+            'text_secondary': '#A29696',
+            'text_muted': '#404040',
+            'separator': '#0c0c0c',
+            'font_family': 'Roboto mono',
+            'link_color': '#60A5FA'
+        }
+
+        
+        custom_separator = SeparatorStyle(
+            color="#0c0c0c",
+            width=8,
+            length=900,
+            rounded=True,
+            margin_top=20,
+            margin_bottom=20
+        )
+
+        avatar = member.avatar.url if member.avatar and member.avatar.url else ""
+
+        profile = MockMember(
+            name=member.name,
+            id=member.id,
+            guild=designated_guild,
+            created_at=ensure_timezone(member.created_at),
+            joined_at=ensure_timezone(member.joined_at),
+            avatar_url=avatar
+
+        )
+
+        try:
+            create_modern_warning_panel(
+                message=message,
+                member=profile,
+                output_path="modern_warning_panel.png",
+                width=700,
+                height=200,
+                theme=custom_theme,
+                separator_style=custom_separator,
+                text_processing=TextProcessingMode.RAW
+            )
+        except Exception as e:
+            print(f"Error creating panel: {str(e)}")
+            return
+
+        try:
+            channel_id = CHANNEL_MAPPINGS.get(designated_guild.name, CHANNEL_MAPPINGS["default"])
+            channel = guild.get_channel_or_thread(channel_id)
+            await channel.send(file=selfcord.File('modern_warning_panel.png'))
+        except Exception as e:
+            print(f"Error sending message: {e}")
+
         
     async def timeout_user(self, data, reason):
         if not await self.mutual_guild(data['guild'], data['member'].id):
@@ -629,6 +694,7 @@ class Sus(commands.Cog):
                                     
                                     if is_scam_server(guild_name):
                                         create_panel(detected_url, "Scam Server", guild_name,  data['message'], data['member'])
+                                        await self.send_panel(data, data['message'], guild_obj)
                                         
                                         await self.global_ban_user(user_id, data_guild_id)
                                         print(f"{time_format} {guild_format} [#f595ad]Banning user[/] {data['user_id']}")

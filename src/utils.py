@@ -461,7 +461,10 @@ def fix_https_url(url):
     parsed_url = urllib.parse.urlparse(url)
     
     parsed_url = clean_netloc(parsed_url)
-    parsed_url = remove_default_ports(parsed_url)
+    try:
+        parsed_url = remove_default_ports(parsed_url)
+    except Exception as e:
+        print(f"Failed to parse port: {e}" )
     parsed_url = normalize_path(parsed_url)
     parsed_url = remove_fragment_if_needed(parsed_url)
 
