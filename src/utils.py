@@ -1,18 +1,18 @@
 import asyncio, glob, io, os, threading, re
 import aiohttp, selfcord, httpx, urllib.parse
 
-
-
 from os.path import join
 from datetime import datetime, timedelta, timezone
 from selfcord.ext import commands
 from random import choice, uniform, randint
 from collections.abc import AsyncGenerator, Generator
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, List
 
 from rich.console import Console
 from rich import print
 from rich.panel import Panel
+
 
 console = Console()
 
@@ -355,256 +355,141 @@ def check_date(input_date, day):
     time_difference = current_date - given_date 
     return time_difference < timedelta(days=day)
 
-def scan_message_url(message):
-    # Get url from the message
-    extract_url = extract_urls(message)
-    if not extract_url:
-        return None
-    else:
-        detected_url = get_final_url(extract_url[0])
-        if detected_url:
-            return detected_url
 
-def extract_urls(messages):
+def find_message_url(message: str) -> Optional[str]:
     """
-    Extract URLs from a single message.
+    Find and resolve the final URL in a given message.
+    
+    Args:
+        message (str): The input message to extract URL from
+    
+    Returns:
+        Optional[str]: The final resolved URL, or None if no URL is found
     """
-    # Original pattern
-    url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
-    
-    # New pattern for the specific case
-    specific_pattern = r"<https:\s*/(?:%\d+%)?@@t\.co/[^>]+>"
-    
-    # Combine patterns
-    combined_pattern = f"{url_pattern}|{specific_pattern}"
-    
-    matches = re.findall(combined_pattern, messages)
-    
-    urls = []
-    for match in matches:
-        if match.startswith('<https:'):
-            # Handle the specific case
-            url = match.strip('<>')
-            url = url.replace(' ', '').replace('@@', '@')
-            url = re.sub(r'%\d+%', '', url)
-            url = 'https://' + url.split('/', 1)[-1]
-        else:
-            # Handle other cases as before
-            url = match.rstrip("/ >")
-        
-        url = url.strip('**').replace('>', '')
-        # Apply the original replacements
-        url = url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "").replace("%0%", "")
-        # Remove trailing slash for t.co links
-        if 't.co' in url:
-            url = url.rstrip('/')
-        
-        urls.append(url)
-    
-    return urls
+    extracted_urls = extract_urls(message)
+    if extracted_urls:
+        for url in extracted_urls:
+            sanitized_url = clean_url(url)
+            if sanitized_url:
+                fetched_final_url = get_final_url(sanitized_url)
+                if fetched_final_url:
+                    return fetched_final_url
+    return None
 
-def old_extract_urls(messages):
-    """
-    Deprecated 
-    Extract URLs from a single message.
-    """
-    url_pattern = r"https?://?[^\s)]+|discord\.gg/[^\s)]+|discord\.com/invite/[^\s)]+"
-    matches = re.findall(url_pattern, messages)
-    urls = [match.rstrip("/ >") for match in matches]
-    return [url.replace("\\", "").replace("@", "").replace("/?", "").replace("///", "//").replace("%40", "") for url in urls]
-
-
-def fix_https_url(url):
-    def normalize_scheme(url):
-        scheme_match = re.match(r'^(https?:?/?/?)(.+)', url, re.IGNORECASE)
-        if scheme_match:
-            scheme, rest = scheme_match.groups()
-            return 'http://' + rest if scheme.lower().startswith('http:') else 'https://' + rest
-        return 'https://' + url
-
-    def clean_netloc(parsed_url):
-        if not parsed_url.netloc:
-            parts = parsed_url.path.split('/', 1)
-            netloc = parts[0]
-            path = '/' + parts[1] if len(parts) > 1 else '/'
-            return parsed_url._replace(netloc=netloc, path=path)
-        return parsed_url
-
-    def remove_default_ports(parsed_url):
-        if (parsed_url.port == 80 and parsed_url.scheme == 'http') or \
-           (parsed_url.port == 443 and parsed_url.scheme == 'https'):
-            return parsed_url._replace(netloc=parsed_url.hostname)
-        return parsed_url
-
-    def normalize_path(parsed_url):
-        path = parsed_url.path or '/'
-        path = re.sub(r'/+', '/', path)
-        return parsed_url._replace(path=path)
-
-    def remove_fragment_if_needed(parsed_url):
-        if parsed_url.path.lower().endswith(('.html', '.htm', '.php')):
-            return parsed_url._replace(fragment='')
-        return parsed_url
-
-    def is_valid_domain(netloc):
-        return '.' in netloc and '_' not in netloc
-
-    # Main logic
-    url = url.strip().rstrip(',;')
-    
+def clean_url(url: str) -> str:
+    """Clean and normalize URLs."""
     try:
-        url = url.encode('idna').decode('ascii')
-    except UnicodeError:
-        pass
+        # Handle empty or invalid URLs
+        if not url or url.isspace():
+            return ''
 
-    url = normalize_scheme(url)
-    parsed_url = urllib.parse.urlparse(url)
-    
-    parsed_url = clean_netloc(parsed_url)
-    try:
-        parsed_url = remove_default_ports(parsed_url)
+        # Remove common Discord message formatting
+        url = re.sub(r'[`*_~]', '', url)
+        url = url.strip('[]()<>"\' \t')
+
+        # Trim any trailing characters after the URL
+        url_match = re.match(r'(https?://\S+)', url)
+        if url_match:
+            url = url_match.group(1)
+
+        # Handle Discord invite links specifically
+        discord_match = re.search(r'(?:discord\.(?:com|gg)|discordapp\.com)/invite\??([a-zA-Z0-9]+)', url)
+        if discord_match:
+            return f'https://discord.gg/{discord_match.group(1)}'
+
+        # Basic URL cleanup
+        url = re.sub(r':discord\.', 'discord.', url)
+        url = re.sub(r'\\+', '/', url)  # Replace backslashes with forward slashes
+        url = urllib.parse.unquote(url)  # Decode URL-encoded characters
+        
+        # Clean @ symbols and credentials
+        url = re.sub(r'(?:%40|@@?|!@!|%0%40|%0%400000)', '@', url)
+        url = re.sub(r'https?://[^@]+@', 'https://', url)
+        
+        # Ensure proper scheme
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url.lstrip('/:')
+        
+        # Parse and reconstruct URL
+        parsed = urllib.parse.urlparse(url)
+        netloc = parsed.netloc.split('@')[-1]  # Remove any remaining credentials
+        
+        # Reconstruct clean URL
+        clean_url_result = urllib.parse.urlunparse((
+            'https',  # Always use HTTPS
+            netloc,
+            parsed.path,
+            '',  # params
+            '',  # query
+            ''   # fragment
+        ))
+        
+        # Final cleanup
+        clean_url_result = re.sub(r'/$', '', clean_url_result)  # Remove trailing slash
+        return clean_url_result if clean_url_result != 'https://' else ''
+        
     except Exception as e:
-        print(f"Failed to parse port: {e}" )
-    parsed_url = normalize_path(parsed_url)
-    parsed_url = remove_fragment_if_needed(parsed_url)
+        print(f"Error cleaning URL: {e}")
+        return ''
 
-    if not is_valid_domain(parsed_url.netloc):
-        return None
+def extract_urls(message: str) -> List[str]:
+    """Extract URLs from message content."""
+    try:
+        # Remove Discord mentions and formatting
+        message = re.sub(r'<@!?\d+>|@everyone|@here', '', message)
+        
+        # Comprehensive URL extraction patterns
+        url_patterns = [
+            # Handles URLs with potential additional characters
+            r'https?://[^\s)>]+',
+            # Discord invites
+            r'(?:discord\.(?:com|gg)|discordapp\.com)/invite\??[a-zA-Z0-9]+',
+            # URLs in markdown
+            r'\[([^\]]+)\]\(([^)]+)\)',
+            # Domain patterns
+            r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+'
+        ]
+        
+        urls = []
+        for pattern in url_patterns:
+            matches = re.finditer(pattern, message, re.IGNORECASE)
+            for match in matches:
+                # Handle different match groups for different patterns
+                url = match.group(0) if len(match.groups()) == 0 else match.group(2) if len(match.groups()) == 2 else match.group(0)
+                
+                cleaned_url = clean_url(url)
+                if cleaned_url and cleaned_url not in urls:
+                    urls.append(cleaned_url)
+        
+        return urls
+        
+    except Exception as e:
+        print(f"Error extracting URLs: {e}")
+        return []
 
-    fixed_url = urllib.parse.urlunparse(parsed_url)
-
-    if not re.match(r'^https?://[^\s/$.?#].[^\s]*$', fixed_url):
-        return None
-
-    return fixed_url
-
-def get_final_url(url):
+def get_final_url(url: str) -> Optional[str]:
+    """Resolve the final URL after potential redirects."""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     }
 
-    url = fix_https_url(url)
-
-    if not url.startswith('http'):
-        url = 'https://' + url
-
-    # Check if the URL is a Twitter short URL
-    if url.startswith('https://t.co/'):
-        try:
-            response = httpx.get(url, headers=headers, follow_redirects=False)
-            response.raise_for_status()  # Raise an exception if the status code is not 200
-            data = response.text
-            url = re.search("(?P<url>https?://[^\s]+)\"", data).group("url")
-            return str(url)
-        except httpx.HTTPError as err:
-            print(f'An HTTP error occurred: {err}')
-        except httpx.RequestError as err:
-            print(f'An error occurred: {err}')
+    url = url if url.startswith('http') else f'https://{url}'
 
     try:
-        with httpx.Client(timeout=50.0) as client:
-            response = client.get(url, headers=headers, follow_redirects=True)
-            response.raise_for_status()  # Raise an exception if the status code is not 200
-            return str(response.url)
-    except httpx.HTTPError as err:
-        print(f'An HTTP error occurred: {err}')
-    except httpx.RequestError as err:
-        print(f'An error occurred: {err}')
+        with httpx.Client(timeout=50.0, follow_redirects=True) as client:
+            if url.startswith('https://t.co/'):
+                response = client.get(url, headers=headers, follow_redirects=False)
+                response.raise_for_status()
+                match = re.search(r"(?P<url>https?://[^\s]+)\"", response.text)
+                return match.group("url") if match else None
+            else:
+                response = client.get(url, headers=headers)
+                response.raise_for_status()
+                return str(response.url)
+    except Exception as err:
+        print(f'An error occurred while resolving URL: {err}')
+        return None
 
-
-def find_message_url(message):
-    extracted_url = reworked_extract_urls(message)
-    if extracted_url:
-        for url in extracted_url:
-            sanitized_url = clean_url(url)
-            fetched_final_url = get_final_url(sanitized_url)
-            return fetched_final_url
-
-def safe_backslash_replacement(url):
-    # Parse the URL
-    parsed = urllib.parse.urlparse(url)
-    
-    # Replace backslashes with forward slashes only in the path, params, and query
-    new_path = parsed.path.replace('\\', '/')
-    new_params = parsed.params.replace('\\', '/')
-    new_query = parsed.query.replace('\\', '/')
-    
-    # Reconstruct the URL
-    cleaned_url = urllib.parse.urlunparse((
-        parsed.scheme,
-        parsed.netloc,
-        new_path,
-        new_params,
-        new_query,
-        parsed.fragment
-    ))
-    
-    return cleaned_url
-
-def clean_url(url):
-    # Decode URL-encoded characters
-    
-    url = urllib.parse.unquote(url)
-    # Remove unnecessary characters
-    url = url.replace(" ", "").strip()
-    
-    url = safe_backslash_replacement(url)
-
-    # Ensure the URL has a scheme
-    if not url.startswith(('http://', 'https://', 'ftp://')):
-        url = 'https://' + url.lstrip('/:')
-
-    # Remove extra leading slashes after the scheme # NEW
-    url = re.sub(r'(https?://)/+', r'\1', url)
-
-    # Canonicalize the URL
-    parsed_url = urllib.parse.urlparse(url)
-    url = f"{parsed_url.scheme}://{parsed_url.netloc.split('@')[-1]}{parsed_url.path}"
-
-    
-    # Remove username and password
-    if "@" in url:
-        url = url.split("@", 1)[1]
-    # Remove fragment
-    if "#" in url:
-        url = url.split("#", 1)[0]
-    # Remove query parameters
-    if "?" in url:
-        url = url.split("?", 1)[0]
-
-    
-    # Remove trailing non-URL characters
-    url = re.sub(r'(https?://[^\s/$.?#].[^\s)>]*).*', r'\1', url)
-
-    # Remove trailing punctuation (preserved from the original function)
-    url = re.sub(r'[^\w/]+$', '', url)
-
-    # Handle empty URLs
-    if url == 'https://' or url == 'http://':
-        return ''
-    
-    return url
-
-def reworked_extract_urls(message):
-    # Remove Discord mentions
-    message = re.sub(r'<@!?\d+>', '', message)
-    # Regular expression to match URLs, including those in markdown-style links
-    url_pattern = r'\bhttps?://\S+|\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+|\[?<?(?:https?://)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&//=]*)\)?>?\]?|(?<=\()https?://[^\s)]+(?=\))'
-    
-    # Find all matches in the message
-    urls = re.findall(url_pattern, message, re.IGNORECASE)
-    
-    # Clean and return the found URLs
-    cleaned_urls = []
-    for url in urls:
-        # Remove surrounding brackets, parentheses, and angle brackets
-        url = re.sub(r'^[\[(<]|[\])>]$', '', url)
-        
-        
-        cleaned_url = clean_url(url)
-        if cleaned_url and cleaned_url not in cleaned_urls:
-            cleaned_urls.append(cleaned_url)
-    return cleaned_urls
 
 async def sendmsg(
     ctx, 
