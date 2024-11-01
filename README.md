@@ -18,6 +18,7 @@ A Discord bot designed to detect and prevent malicious activity in your server.
 - URL scanning
 - Handles multiple server
 - Cog System
+- Send logs to specified channels.
 
 # Usage
 1. Install the required dependencies
