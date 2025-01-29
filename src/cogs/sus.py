@@ -535,47 +535,59 @@ class Sus(commands.Cog):
                 f'UID: {data["member"].id}\n'
                 f'Reason: {reason}'
             )
-            await self.sent_to_sentinel(data, reason)
+            await self.send_to_sentinel(data, reason)
 
     async def global_ban_user(self, user_id, guild_id):
         if user_id not in self.banned_users:
             self.banned_users[user_id] = set()
         self.banned_users[user_id].add(guild_id)
     
-    async def sent_to_sentinel(data, reason):
+    async def send_to_sentinel(self, data, reason):
+        """
+        Send ban data to the sentinel service asynchronously.
+        
+        Args:
+            data (dict): Contains member and guild information
+            reason (str): The reason for the ban
+        
+        Returns:
+            dict|None: Response from sentinel service or None if request fails
+        """
         member = data['member']
         guild = data['guild']
-        message = ''
+        message = data.get('message', '')  # Using get() with default value
         
-        if data['message'] is not None:
-            message = data['message']
-
         try:
             member_data = {
                 'memberId': member.id,
                 'username': member.name,
                 'displayName': member.display_name,
                 'serverId': guild.id,
-                'serverName': guild,
+                'serverName': str(guild),
                 'capturedMessage': message,
                 'reason': reason
             }
 
-            response = requests.post(
-                f'{BASE_URL}/ban',
-                headers=headers,
-                json=member_data
-            )
-
-            if response.status_code == 201:
-                print(f"Successfully banned user {member_data['username']}")
-                return response.json()
-            else:
-                print(f"Failed to create ban. Status code: {response.status_code}")
-                print(f"Error: {response.json()}")
-                return None
-        except requests.exceptions.RequestException as e:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f'{BASE_URL}/api/ban',
+                    headers=headers,
+                    json=member_data
+                ) as response:
+                    if response.status == 201:
+                        print(f"Successfully banned user {member_data['username']}")
+                        return await response.json()
+                    else:
+                        print(f"Failed to create ban. Status code: {response.status}")
+                        error_text = await response.text()
+                        print(f"Error: {error_text}")
+                        return None
+                        
+        except aiohttp.ClientError as e:
             print(f"Error making request: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {e}")
             return None
 
     @commands.Cog.listener()
