@@ -559,10 +559,10 @@ class Sus(commands.Cog):
         
         try:
             member_data = {
-                'memberId': member.id,
+                'memberId': str(member.id),
                 'username': member.name,
                 'displayName': member.display_name,
-                'serverId': guild.id,
+                'serverId': str(guild.id),
                 'serverName': str(guild),
                 'capturedMessage': message,
                 'reason': reason
@@ -685,6 +685,7 @@ class Sus(commands.Cog):
                     'message': sent_message,
                     'event': 'message'
                 }
+
             # Add the message data to the main queue
             await self.main_queue.put(data)
 
