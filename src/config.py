@@ -5,6 +5,7 @@ from base64 import b64decode
 class Config:
     token = ''
     prefix = ''
+    sentinel = ''
     apikeys = {}
 
 
@@ -13,6 +14,7 @@ def make():
         fd.write(json.dumps({
             'token': 'your token here!',
             'prefix': '.',
+            'sentinel': 'your sentinel key here!', 
             'apikeys': {}
         },
         indent=4
@@ -23,6 +25,7 @@ def save_config():
         fd.write(json.dumps({
             'token': Config.token,
             'prefix': Config.prefix,
+            'sentinel': Config.sentinel,
             'apikeys': Config.apikeys
         },
         indent=4
@@ -56,11 +59,12 @@ def load_config():
     
     if tk_str == 'your token here!':
         sys.exit('\nIt seems like you\'ve forget to edit your token. \nPlease do that first before continuing!')
+  
     
     try:
         Config.token = tk_str
         Config.prefix = cfg['prefix']
-
+        Config.sentinel = cfg['sentinel']
         Config.apikeys = cfg['apikeys']
     
     except Exception as e:

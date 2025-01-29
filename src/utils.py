@@ -440,6 +440,8 @@ def extract_urls(message: str) -> List[str]:
         
         # Comprehensive URL extraction patterns
         url_patterns = [
+            # Add this pattern specifically for Discord links with backslashes
+            r'(?:desk)?discord\.(?:com|gg|net)/invite\\?/?[a-zA-Z0-9]+',
             # Handles URLs with potential additional characters
             r'https?://[^\s)>]+',
             # Discord invites

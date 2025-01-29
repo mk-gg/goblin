@@ -3,6 +3,7 @@ import requests
 from selfcord.ext import commands
 from src.utils import *
 from src.svg_panel import *
+from src.config import *
 
 from datetime import datetime, timedelta, timezone
 
@@ -220,6 +221,11 @@ templates = [
 ]
 
 TIMEOUT_DURATION = 60
+BASE_URL = "https://mksentinel.vercel.app"
+API_KEY =  Config.sentinel
+headers = {'X-API-Key': API_KEY}
+
+
 
 def create_template_matcher(templates):
     # Convert templates to regex patterns
@@ -457,7 +463,7 @@ class Sus(commands.Cog):
         time_format = f"[{get_time_now()}]"
         guild_format = f"[[{color_guild}]{guild}[/]]"
 
-        print(f"{time_format} {guild_format} {event_msg} {member.id} - {member}   {reason}")
+        print(f"{time_format} {guild_format} [{event_msg}] {member.id} - {member}   {reason}")
         
 
     async def kick_user(self, data, reason):
@@ -529,11 +535,48 @@ class Sus(commands.Cog):
                 f'UID: {data["member"].id}\n'
                 f'Reason: {reason}'
             )
+            await self.sent_to_sentinel(data, reason)
 
     async def global_ban_user(self, user_id, guild_id):
         if user_id not in self.banned_users:
             self.banned_users[user_id] = set()
         self.banned_users[user_id].add(guild_id)
+    
+    async def sent_to_sentinel(data, reason):
+        member = data['member']
+        guild = data['guild']
+        message = ''
+        
+        if data['message'] is not None:
+            message = data['message']
+
+        try:
+            member_data = {
+                'memberId': member.id,
+                'username': member.name,
+                'displayName': member.display_name,
+                'serverId': guild.id,
+                'serverName': guild,
+                'capturedMessage': message,
+                'reason': reason
+            }
+
+            response = requests.post(
+                f'{BASE_URL}/ban',
+                headers=headers,
+                json=member_data
+            )
+
+            if response.status_code == 201:
+                print(f"Successfully banned user {member_data['username']}")
+                return response.json()
+            else:
+                print(f"Failed to create ban. Status code: {response.status_code}")
+                print(f"Error: {response.json()}")
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"Error making request: {e}")
+            return None
 
     @commands.Cog.listener()
     async def on_user_update(self, before, after):
@@ -667,6 +710,7 @@ class Sus(commands.Cog):
                         await self.global_ban_user(user_id, data_guild_id) # Add the user with guild id to the banned list
                         print(f"{time_format} {guild_format} Banning user: {data_guild_id}")
                         await self.ban_user(data, "Scam Bio Link")
+
 
                 else:
 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="left-container">
+            <div class="avatar">
+                <img class="profile-image" src="{{profile_image}}" alt="Profile picture">
+            </div>
+            <div class="info">
+                <div class="user-info">
+                    <p class="profile-username">{{username}}</p>
+                    <p class="profile-id">{{user_id}}</p>
+                </div>
+                <div class="user-date">
+                    <p class="profile-created">Created {{created_date}}</p>
+                    <p class="profile-joined">Member since {{joined_date}} ago</p>
+                </div>
+
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="right-container">
+            <div class="title-container">
+                <p class="title-message">sent message</p>
+            </div>
+            <div class="message-container">
+                <p class="content-message">
+                {{content_message}}        
+            </div>
+
+
+        </div>
+    </div>
+
+</body>
+</html>

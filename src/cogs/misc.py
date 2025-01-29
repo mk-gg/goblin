@@ -6,6 +6,14 @@ class Misc(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+
+    @commands.command(aliases=['ambas'])
+    async def ambusseing(self, ctx):
+        if ctx.message.author.id != self.client.user.id:
+                return
+        
+        
+
     @commands.command()
     async def echo(self, ctx, *, msg) -> None:
         """
