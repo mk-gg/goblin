@@ -555,7 +555,11 @@ class Sus(commands.Cog):
         """
         member = data['member']
         guild = data['guild']
-        message = data.get('message', '')  # Using get() with default value
+        # More thorough message validation
+        message = data.get('message')
+        if message is None or message == 'None' or not message:
+            message = ''
+        
         
         try:
             member_data = {
