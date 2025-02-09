@@ -398,6 +398,7 @@ def clean_url(url: str) -> str:
             return f'https://discord.gg/{discord_match.group(1)}'
 
         # Basic URL cleanup
+        url = re.sub(r'discordappdiscordapp', 'discordapp', url, flags=re.IGNORECASE)
         url = re.sub(r':discord\.', 'discord.', url)
         url = re.sub(r'\\+', '/', url)  # Replace backslashes with forward slashes
         url = urllib.parse.unquote(url)  # Decode URL-encoded characters
@@ -449,7 +450,9 @@ def extract_urls(message: str) -> List[str]:
             # URLs in markdown
             r'\[([^\]]+)\]\(([^)]+)\)',
             # Domain patterns
-            r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+'
+            r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+',
+
+            r'<https?:/?/?(?:@@+|%40+)?[^\s<>]+>'
         ]
         
         urls = []
