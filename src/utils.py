@@ -387,6 +387,13 @@ def clean_url(url: str) -> str:
         url = re.sub(r'[`*_~]', '', url)
         url = url.strip('[]()<>"\' \t')
 
+        # Handle URLs with encoded @ symbols and dots more aggressively
+        url = re.sub(r'/%40|%40|@@?|!@!|%0%40|%0%400000', '@', url)
+        url = re.sub(r'%2E|\\.', '.', url)
+        
+        # Remove trailing dots and other punctuation
+        url = re.sub(r'[.,]+$', '', url)
+
         # Trim any trailing characters after the URL
         url_match = re.match(r'(https?://\S+)', url)
         if url_match:
@@ -441,6 +448,7 @@ def extract_urls(message: str) -> List[str]:
         
         # Comprehensive URL extraction patterns
         url_patterns = [
+            r'<https?:/?/?(?:%40|@@?|!@!|%0%40|%0%400000)?[^\s<>]+>',
             # Add this pattern specifically for Discord links with backslashes
             r'(?:desk)?discord\.(?:com|gg|net)/invite\\?/?[a-zA-Z0-9]+',
             # Handles URLs with potential additional characters
@@ -450,9 +458,9 @@ def extract_urls(message: str) -> List[str]:
             # URLs in markdown
             r'\[([^\]]+)\]\(([^)]+)\)',
             # Domain patterns
-            r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+',
+            r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+'
 
-            r'<https?:/?/?(?:@@+|%40+)?[^\s<>]+>'
+            # r'<https?:/?/?(?:@@+|%40+)?[^\s<>]+>'
         ]
         
         urls = []
