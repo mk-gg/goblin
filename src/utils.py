@@ -404,6 +404,9 @@ def clean_url(url: str) -> str:
         if discord_match:
             return f'https://discord.gg/{discord_match.group(1)}'
 
+        url = re.sub(r'/invite\\', '/invite/', url, flags=re.IGNORECASE)
+        url = re.sub(r'/invite.', '/invite/', url, flags=re.IGNORECASE)
+
         # Basic URL cleanup
         url = re.sub(r'discordappdiscordapp', 'discordapp', url, flags=re.IGNORECASE)
         url = re.sub(r':discord\.', 'discord.', url)
