@@ -387,34 +387,37 @@ def clean_url(url: str) -> str:
         url = re.sub(r'[`*_~]', '', url)
         url = url.strip('[]()<>"\' \t')
 
-        # Handle URLs with encoded @ symbols and dots more aggressively
-        url = re.sub(r'/%40|%40|@@?|!@!|%0%40|%0%400000', '@', url)
-        url = re.sub(r'%2E|\\.', '.', url)
+                # Handle all variants of encoded @ symbols and cleanup
+        url = re.sub(r'(?:%40|@@?|!@!|%0%40|%0%400000|/%40%20@|%20@)', '@', url)
+        url = re.sub(r'\.>?$', '', url)  # Remove trailing dot and optional angle bracket
         
-        # Remove trailing dots and other punctuation
-        url = re.sub(r'[.,]+$', '', url)
+        # Clean up multiple forward slashes, but preserve http(s)://
+        url = re.sub(r'(?<!:)/{2,}', '/', url)
 
         # Trim any trailing characters after the URL
         url_match = re.match(r'(https?://\S+)', url)
         if url_match:
             url = url_match.group(1)
 
+
+                # Handle words connected to discord.com
+        url = re.sub(r'([a-zA-Z0-9]+)discord(?:app)?\.(?:com|gg|net)', 'discord.com', url, flags=re.IGNORECASE)
+
+
+
+
         # Handle Discord invite links specifically
         discord_match = re.search(r'(?:discord\.(?:com|gg)|discordapp\.com)/invite\??([a-zA-Z0-9]+)', url)
         if discord_match:
             return f'https://discord.gg/{discord_match.group(1)}'
 
-        url = re.sub(r'/invite\\', '/invite/', url, flags=re.IGNORECASE)
-        url = re.sub(r'/invite.', '/invite/', url, flags=re.IGNORECASE)
-
+        
         # Basic URL cleanup
-        url = re.sub(r'discordappdiscordapp', 'discordapp', url, flags=re.IGNORECASE)
         url = re.sub(r':discord\.', 'discord.', url)
         url = re.sub(r'\\+', '/', url)  # Replace backslashes with forward slashes
         url = urllib.parse.unquote(url)  # Decode URL-encoded characters
         
         # Clean @ symbols and credentials
-        url = re.sub(r'(?:%40|@@?|!@!|%0%40|%0%400000)', '@', url)
         url = re.sub(r'https?://[^@]+@', 'https://', url)
         
         # Ensure proper scheme
@@ -425,11 +428,17 @@ def clean_url(url: str) -> str:
         parsed = urllib.parse.urlparse(url)
         netloc = parsed.netloc.split('@')[-1]  # Remove any remaining credentials
         
+        netloc = re.sub(r'^([a-zA-Z0-9]+)discord\.', 'discord.', netloc, flags=re.IGNORECASE)
+        
+        # Clean path - remove duplicate slashes and trailing dots
+        path = re.sub(r'/{2,}', '/', parsed.path)
+        path = re.sub(r'\.+$', '', path)
+        
         # Reconstruct clean URL
         clean_url_result = urllib.parse.urlunparse((
             'https',  # Always use HTTPS
             netloc,
-            parsed.path,
+            path,
             '',  # params
             '',  # query
             ''   # fragment
@@ -451,9 +460,18 @@ def extract_urls(message: str) -> List[str]:
         
         # Comprehensive URL extraction patterns
         url_patterns = [
-            r'<https?:/?/?(?:%40|@@?|!@!|%0%40|%0%400000)?[^\s<>]+>',
-            # Add this pattern specifically for Discord links with backslashes
+                        # Handle URLs with encoded @ symbols and unusual patterns
+            r'https?:/?/?(?:%40|@@?|!@!|%0%40|%0%400000|/%40%20@|%20@)?[^\s()<>]+',
+            
+            # Discord-specific patterns
             r'(?:desk)?discord\.(?:com|gg|net)/invite\\?/?[a-zA-Z0-9]+',
+            r'[a-zA-Z0-9]+discord(?:app)?\.(?:com|gg|net)\S*',
+            
+            # URLs in angle brackets (with optional asterisks)
+            r'\*?\*?<(https?:[^>]+)>\*?\*?',
+            
+            # Regular URLs with potential additional characters
+
             # Handles URLs with potential additional characters
             r'https?://[^\s)>]+',
             # Discord invites
@@ -462,8 +480,6 @@ def extract_urls(message: str) -> List[str]:
             r'\[([^\]]+)\]\(([^)]+)\)',
             # Domain patterns
             r'\b(?:www\.|\w+\.(?:com|org|net|edu|gov|io|gg|me|t\.co))\S+'
-
-            # r'<https?:/?/?(?:@@+|%40+)?[^\s<>]+>'
         ]
         
         urls = []
