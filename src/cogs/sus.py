@@ -8,27 +8,27 @@ from src.config import *
 from datetime import datetime, timedelta, timezone
 
 guilds = {
-    438327036205858818: {
-        'ban_channel': 1110939231469195274,
-        'color': '#95BDFF'
-    }, # test 
-    1229357590295871529: {
-        'ban_channel': 1229357928226754570,
-        'color': '#8DDFCB'
-    }, # test 2
-    1229357703240089641: {
-        'ban_channel': 1229358040168267838, 
-        'color': '#EDB7ED'
-    }, # test 3
-
-    410537146672349205: {
-        'ban_channel': 976324309981204542,
-        'color': '#E8C872'
-    }, # Axie Infinity 
-    930892666705694800: {
-        'ban_channel': 1044659893803692184,
-        'color': '#7FC7D9'
-    } # Ronin Network
+    
+    "438327036205858818": {
+        "ban_channel": 1110939231469195274,
+        "color": "#95BDFF"
+    },
+    "1229357590295871529": {
+        "ban_channel": 1229357928226754570,
+        "color": "#8DDFCB"
+    },
+    "1229357703240089641": {
+        "ban_channel": 1229358040168267838,
+        "color": "#EDB7ED"
+    },
+    "410537146672349205": {
+        "ban_channel": 976324309981204542,
+        "color": "#E8C872"
+    },
+    "930892666705694800": {
+        "ban_channel": 1044659893803692184,
+        "color": "#7FC7D9"
+    }
 }
 
 server_bots = {
@@ -266,7 +266,7 @@ def is_matched_template(data):
 def is_scam_server(name):
     if name is None:
         return False
-    scam_keywords = {"support", "tickets","support-tickets", "support server", "ticket support", "helpdesk center", "create ticket", "helpdesk", "help desk", "help center", "support ticket", "ticket tool", "ticket", "server support", "customer support", "technical support", "help-center", "help", "help-centre"}
+    scam_keywords = {"support", "tickets","support-tickets", "support server", "ticket support", "helpdesk center", "create ticket", "helpdesk", "help desk", "help center", "support ticket", "ticket tool", "ticket", "server support", "customer support", "technical support", "help-center", "help", "help-centre", "resolution"}
     return any(keyword.lower() in name.lower() for keyword in scam_keywords)
 
 def is_nsfw_server(name):
@@ -501,7 +501,7 @@ class Sus(commands.Cog):
             )
 
 
-    async def ban_user(self, data, reason, delete_message_seconds=0):
+    async def ban_user(self, data, reason, delete_message_seconds=0, delay=0):
         is_user_present = await self.mutual_guild(data['guild'], data['member'].id)
         if is_user_present:
             try:
@@ -525,7 +525,7 @@ class Sus(commands.Cog):
             channel = guild.get_channel_or_thread(guilds[guild.id]['ban_channel'])
             await channel.send(f"<@{data['member'].id}>")
 
-            if delete_message_seconds > 0:
+            if delay > 0:
                 await asyncio.sleep(uniform(4, 8))
 
  
@@ -726,7 +726,7 @@ class Sus(commands.Cog):
 
                         await self.global_ban_user(user_id, data_guild_id) # Add the user with guild id to the banned list
                         print(f"{time_format} {guild_format} Banning user: {data_guild_id}")
-                        await self.ban_user(data, "Scam Bio Link")
+                        await self.ban_user(data, "Scam Bio Link", delete_message_seconds=3000)
 
 
                 else:
@@ -759,7 +759,7 @@ class Sus(commands.Cog):
                                         
                                         await self.global_ban_user(user_id, data_guild_id)
                                         print(f"{time_format} {guild_format} [#f595ad]Banning user[/] {data['user_id']}")
-                                        await self.ban_user(data, "Scam Attempt", 3000)
+                                        await self.ban_user(data, "Scam Attempt", delete_message_seconds=3000, delay=0)
                                     
                                     if is_nsfw_server(guild_name):
                                         create_panel(detected_url, "NSFW Server", guild_name,  data['message'], data['member'])
